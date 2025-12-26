@@ -1,0 +1,14 @@
+{
+  "name": "sona-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for testing Stable Audio API integration",
+  "type": "module",
+  "scripts": {
+    "test:text-to-audio": "node stable-audio.js text-to-audio",
+    "test:audio-to-audio": "node stable-audio.js audio-to-audio"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "form-data": "^4.0.0"
+  }
+}

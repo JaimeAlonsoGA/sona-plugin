@@ -64,6 +64,26 @@ npm run dev
 
 El dev server correrá en http://localhost:5173
 
+### Testing Stable Audio API
+
+Para probar la integración con Stable Audio API:
+
+```bash
+cd scripts
+npm install
+
+# Set API key
+export STABLE_AUDIO_API_KEY=your-api-key-here
+
+# Test text-to-audio
+node stable-audio.js text-to-audio "punchy tech house kick drum"
+
+# Test audio-to-audio
+node stable-audio.js audio-to-audio ./input.wav "add reverb"
+```
+
+Ver [scripts/README.md](scripts/README.md) para más detalles.
+
 ## Next Steps
 
 1. [ ] Configurar Supabase project

@@ -32,6 +32,16 @@ node_modules
 package-lock.json
 dist
 
+# Scripts dependencies
+scripts/node_modules
+scripts/package-lock.json
+
 # Environment variables
 .env.local
 .env*.local
+
+# Generated audio output
+output/
+!output/.gitkeep
+*.wav
+*.mp3
