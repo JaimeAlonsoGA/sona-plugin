@@ -30,6 +30,12 @@ sona/
 │   ├── generate/          # Audio job creation endpoint
 │   ├── examples/          # Integration examples
 │   └── README.md          # Edge Functions documentation
+├── service-worker/        # Background audio worker (Node.js)
+│   ├── src/               # TypeScript source
+│   ├── Dockerfile         # Docker configuration
+│   ├── fly.toml           # Fly.io deployment config
+│   ├── DEPLOYMENT.md      # Deployment guide
+│   └── README.md          # Worker documentation
 ├── supabase/              # Supabase configuration
 │   ├── config.toml        # Project configuration
 │   └── migrations/        # Database migrations
@@ -95,13 +101,43 @@ supabase functions deploy generate
 - [Deployment Guide](edge-functions/DEPLOYMENT.md) - Guía de despliegue paso a paso
 - [Implementation Summary](edge-functions/IMPLEMENTATION_SUMMARY.md) - Resumen de implementación
 
+### Servicio Worker de Audio
+
+El servicio worker procesa trabajos de generación de audio en segundo plano.
+
+Ver documentación completa: [service-worker/README.md](service-worker/README.md)
+
+**Desplegar Worker:**
+
+```bash
+cd service-worker
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# Validar configuración
+npm run validate
+
+# Modo desarrollo
+npm run dev
+
+# Modo producción
+npm run build
+npm start
+```
+
+**Documentación relacionada:**
+- [Service Worker README](service-worker/README.md) - Documentación completa
+- [Deployment Guide](service-worker/DEPLOYMENT.md) - Guía de despliegue para Fly.io, Render, Railway, VPS
+
 ## Next Steps
 
 1. [x] Configurar Supabase Edge Functions (COD-29)
-2. [ ] Configurar Supabase project
-3. [ ] Implementar comunicación C++ ↔ React
-4. [ ] Crear componentes React base
-5. [ ] Integrar Stable Audio API (background worker)
+2. [x] Build Audio Worker Service for Stable Audio generation (COD-30)
+3. [ ] Configurar Supabase project
+4. [ ] Implementar comunicación C++ ↔ React
+5. [ ] Crear componentes React base
 6. [ ] Sistema de autenticación
 7. [ ] Features core (Designer/Producer modes)
 
