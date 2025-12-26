@@ -14,10 +14,19 @@ const API_KEY = process.env.STABLE_AUDIO_API_KEY;
 const TEXT_TO_AUDIO_ENDPOINT = 'https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio';
 const AUDIO_TO_AUDIO_ENDPOINT = 'https://api.stability.ai/v2beta/audio/stable-audio-2/audio-to-audio';
 const OUTPUT_DIR = path.join(__dirname, '..', 'output');
+const DEFAULT_PROMPT = "punchy tech house kick drum";
 
 // Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+}
+
+/**
+ * Generates a timestamp string for filenames
+ * @returns {string} Timestamp in format YYYY-MM-DDTHH-MM-SS
+ */
+function generateTimestamp() {
+  return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
 }
 
 /**
@@ -36,7 +45,7 @@ function validateApiKey() {
  * @param {string} prompt - The text prompt describing the audio to generate
  * @param {Object} options - Generation options
  */
-async function textToAudio(prompt = "punchy tech house kick drum", options = {}) {
+async function textToAudio(prompt = DEFAULT_PROMPT, options = {}) {
   console.log('\n🎵 Starting Text-to-Audio generation...');
   console.log(`📝 Prompt: "${prompt}"`);
   
@@ -68,7 +77,7 @@ async function textToAudio(prompt = "punchy tech house kick drum", options = {})
     const endTime = Date.now();
     const generationTime = ((endTime - startTime) / 1000).toFixed(2);
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const timestamp = generateTimestamp();
     const filename = `text-${timestamp}.${options.output_format || 'wav'}`;
     const filepath = path.join(OUTPUT_DIR, filename);
     
@@ -140,7 +149,7 @@ async function audioToAudio(audioPath, prompt, options = {}) {
     const endTime = Date.now();
     const generationTime = ((endTime - startTime) / 1000).toFixed(2);
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const timestamp = generateTimestamp();
     const filename = `audio-${timestamp}.${options.output_format || 'wav'}`;
     const filepath = path.join(OUTPUT_DIR, filename);
     
@@ -181,7 +190,7 @@ async function main() {
   
   try {
     if (mode === 'text-to-audio') {
-      const prompt = args[1] || "punchy tech house kick drum";
+      const prompt = args[1] || DEFAULT_PROMPT;
       await textToAudio(prompt, {
         output_format: 'wav',
         duration: 20,
@@ -217,7 +226,7 @@ async function main() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
   main();
 }
 
