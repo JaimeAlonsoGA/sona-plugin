@@ -11,4 +11,4 @@ export {
   useGenerateAudio,
   useIsAuthenticated,
   queryKeys,
-} from './useSupabase'
+} from './use-supabase'
