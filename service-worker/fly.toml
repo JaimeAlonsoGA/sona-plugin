@@ -1,0 +1,42 @@
+# Fly.io configuration for Sona Audio Worker
+# See https://fly.io/docs/reference/configuration/ for full documentation
+
+# Replace with your app name
+app = "sona-audio-worker"
+
+# Set your primary region (closest to your Supabase project)
+primary_region = "iad"
+
+# Build configuration
+[build]
+
+# Environment variables (non-secret)
+[env]
+  NODE_ENV = "production"
+  LOG_LEVEL = "info"
+  MAX_CONCURRENT_JOBS = "2"
+  POLL_INTERVAL_MS = "5000"
+  STORAGE_PATH_PREFIX = "generated"
+  SUPABASE_STORAGE_BUCKET = "audio-files"
+
+# Define the worker process
+[processes]
+  worker = "node dist/index.js"
+
+# Health checks
+[checks]
+  [checks.worker_alive]
+    type = "script"
+    interval = "30s"
+    timeout = "5s"
+    script = "node -e 'process.exit(0)'"
+
+# VM resources
+# Options: shared-cpu-1x, shared-cpu-2x, shared-cpu-4x, shared-cpu-8x
+# See: https://fly.io/docs/about/pricing/#compute
+[vm]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# Set secrets with: fly secrets set SUPABASE_URL="..." SUPABASE_SERVICE_ROLE_KEY="..." STABLE_AUDIO_API_KEY="..."
