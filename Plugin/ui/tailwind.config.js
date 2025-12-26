@@ -7,6 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: '#6366f1',
+        secondary: '#8b5cf6',
         sona: {
           bg: '#0a0a0a',
           surface: '#141414',
