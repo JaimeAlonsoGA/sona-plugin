@@ -124,6 +124,11 @@ export async function getSession(): Promise<Session | null> {
  * @throws Error if not authenticated or generation fails
  */
 export async function generateAudio(prompt: string, mode: string): Promise<ArrayBuffer> {
+  // Validate Supabase URL to prevent SSRF
+  if (!supabaseUrl.includes('supabase.co')) {
+    throw new Error('Invalid Supabase URL configuration')
+  }
+  
   // Get current session
   const { data: { session } } = await supabase.auth.getSession()
   

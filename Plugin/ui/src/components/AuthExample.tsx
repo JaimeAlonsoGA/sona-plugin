@@ -96,8 +96,8 @@ export function AuthExample() {
           <div className="p-3 bg-red-900/50 border border-red-700 rounded">
             <p className="text-red-200 text-sm">
               {mode === 'signin' 
-                ? (signIn.error as any)?.message 
-                : (signUp.error as any)?.message}
+                ? signIn.error?.message || 'Sign in failed'
+                : signUp.error?.message || 'Sign up failed'}
             </p>
           </div>
         )}

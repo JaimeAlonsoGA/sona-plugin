@@ -111,8 +111,11 @@ export function useSignOut() {
     onSuccess: () => {
       // Clear session cache
       queryClient.setQueryData(queryKeys.session, null)
-      // Invalidate all queries on sign out
-      queryClient.invalidateQueries()
+      // Clear user cache
+      queryClient.setQueryData(queryKeys.user, null)
+      // Remove all auth-related queries
+      queryClient.removeQueries({ queryKey: queryKeys.session })
+      queryClient.removeQueries({ queryKey: queryKeys.user })
     },
   })
 }

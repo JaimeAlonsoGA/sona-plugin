@@ -80,7 +80,9 @@ export function AudioGenerationExample() {
       {generateAudio.error && (
         <div className="p-3 bg-red-900/50 border border-red-700 rounded">
           <p className="text-red-200 text-sm">
-            {(generateAudio.error as Error).message}
+            {generateAudio.error instanceof Error 
+              ? generateAudio.error.message 
+              : 'Audio generation failed'}
           </p>
         </div>
       )}
