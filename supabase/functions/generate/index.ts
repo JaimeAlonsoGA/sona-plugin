@@ -73,7 +73,7 @@ function validateInput(body: GenerateRequest): { valid: boolean; errors: string[
   }
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
