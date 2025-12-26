@@ -21,6 +21,28 @@ This directory contains the Supabase client configuration and React Query hooks 
 - `lib/hooks/useSupabase.ts` - React Query hooks for optimized data fetching
 - `lib/hooks/index.ts` - Barrel export for hooks
 - `vite-env.d.ts` - TypeScript type definitions for environment variables
+- `components/AuthExample.tsx` - Example component demonstrating authentication
+- `components/AudioGenerationExample.tsx` - Example component demonstrating audio generation
+
+## Testing the Integration
+
+Example components are provided to test the Supabase integration:
+
+### Add to App.tsx for testing:
+
+```typescript
+import { AuthExample } from './components/AuthExample'
+import { AudioGenerationExample } from './components/AudioGenerationExample'
+
+// Add these components to your App return:
+<AuthExample />
+<AudioGenerationExample />
+```
+
+Then run the dev server:
+```bash
+npm run dev
+```
 
 ## Usage
 
@@ -123,3 +145,10 @@ All environment variables are typed in `vite-env.d.ts` for TypeScript support:
 - `VITE_SUPABASE_URL` - Your Supabase project URL (required)
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (required)
 - `VITE_LOCAL_HOST` - Local development host (optional)
+
+## Security
+
+- All Supabase operations use the official `@supabase/supabase-js` client
+- Authentication tokens are automatically managed by Supabase
+- The client is configured with your anon key, which has Row Level Security (RLS) enabled
+- Never commit your `.env.local` file - it's already in `.gitignore`
