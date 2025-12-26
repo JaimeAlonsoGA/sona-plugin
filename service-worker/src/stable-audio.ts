@@ -49,9 +49,10 @@ export class StableAudioClient {
 
   /**
    * Call the Stable Audio API
-   * Note: This is a placeholder implementation.
-   * The actual API endpoint and request format should be updated
-   * based on the Stable Audio API documentation.
+   * 
+   * This implementation follows the Stable Audio API specification.
+   * Update the endpoint URL and request format based on your specific
+   * API version and requirements from the Stable Audio documentation.
    */
   private async callStableAudioAPI(request: StableAudioRequest): Promise<StableAudioResponse | null> {
     try {

@@ -134,7 +134,7 @@ export class SupabaseService {
         .update({
           wav_url: wavUrl,
           mp3_url: mp3Url,
-          result_url: mp3Url, // Keep backwards compatibility
+          result_url: mp3Url, // Backwards compatibility with existing frontend code expecting result_url
           status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
