@@ -80,13 +80,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization')
+    
     // Initialize Supabase client with the auth token from the request
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: authHeader ? { Authorization: authHeader } : {},
         },
       }
     )
@@ -111,7 +114,8 @@ serve(async (req) => {
       )
     }
 
-    console.log(`Authenticated user: ${user.id}`)
+    // Log authentication success (user ID is not PII, safe to log for debugging)
+    console.log(`Request authenticated for user: ${user.id}`)
 
     // Parse request body
     let body: GenerateRequest
@@ -158,7 +162,13 @@ serve(async (req) => {
       status: 'pending',
     }
 
-    console.log('Creating job:', jobData)
+    // Log job creation (prompts are user content, not PII)
+    console.log('Creating job with params:', {
+      duration: jobData.duration,
+      quality: jobData.quality,
+      mode: jobData.mode,
+      promptLength: jobData.prompt.length
+    })
 
     const { data: job, error: dbError } = await supabaseClient
       .from('jobs')
@@ -181,7 +191,8 @@ serve(async (req) => {
       )
     }
 
-    console.log('Job created successfully:', job.id)
+    // Log successful job creation with job ID for tracing
+    console.log('Job created successfully with ID:', job.id)
 
     // Return success response
     return new Response(
