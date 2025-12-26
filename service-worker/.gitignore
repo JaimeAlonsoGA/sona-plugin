@@ -9,6 +9,9 @@ dist/
 *.d.ts
 *.d.ts.map
 
+# Exception: keep validation script
+!validate-config.js
+
 # Environment variables
 .env
 .env.local
