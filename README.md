@@ -26,6 +26,13 @@ sona/
 │   │   │   └── store/
 │   │   └── package.json
 │   └── CMakeLists.txt
+├── edge-functions/        # Supabase Edge Functions (Deno)
+│   ├── generate/          # Audio job creation endpoint
+│   ├── examples/          # Integration examples
+│   └── README.md          # Edge Functions documentation
+├── supabase/              # Supabase configuration
+│   ├── config.toml        # Project configuration
+│   └── migrations/        # Database migrations
 ├── CMake/                 # CMake modules
 ├── Modules/               # JUCE custom modules (opcional)
 ├── Scripts/               # Build scripts
@@ -64,14 +71,39 @@ npm run dev
 
 El dev server correrá en http://localhost:5173
 
+### Supabase Edge Functions
+
+Las Edge Functions están en la carpeta `/edge-functions` y manejan la creación de trabajos de generación de audio.
+
+Ver documentación completa: [edge-functions/README.md](edge-functions/README.md)
+
+**Desplegar Edge Functions:**
+
+```bash
+# Vincular proyecto
+supabase link --project-ref your-project-ref
+
+# Aplicar migración de base de datos
+supabase db push
+
+# Desplegar función
+supabase functions deploy generate
+```
+
+**Documentación relacionada:**
+- [Edge Functions README](edge-functions/README.md) - Documentación de la API
+- [Deployment Guide](edge-functions/DEPLOYMENT.md) - Guía de despliegue paso a paso
+- [Implementation Summary](edge-functions/IMPLEMENTATION_SUMMARY.md) - Resumen de implementación
+
 ## Next Steps
 
-1. [ ] Configurar Supabase project
-2. [ ] Implementar comunicación C++ ↔ React
-3. [ ] Crear componentes React base
-4. [ ] Integrar Stable Audio API
-5. [ ] Sistema de autenticación
-6. [ ] Features core (Designer/Producer modes)
+1. [x] Configurar Supabase Edge Functions (COD-29)
+2. [ ] Configurar Supabase project
+3. [ ] Implementar comunicación C++ ↔ React
+4. [ ] Crear componentes React base
+5. [ ] Integrar Stable Audio API (background worker)
+6. [ ] Sistema de autenticación
+7. [ ] Features core (Designer/Producer modes)
 
 ## Licencia
 
