@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useBridge } from './lib/bridge'
+import { useAuthStateListener } from './lib/hooks'
 import { ModeSelector } from './components/ModeSelector'
 import { PromptInput } from './components/PromptInput'
 import { GenerateButton } from './components/GenerateButton'
@@ -11,6 +12,9 @@ export function App() {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [connected, setConnected] = useState(false)
+
+  // Listen to auth state changes
+  useAuthStateListener()
 
   useEffect(() => {
     // Escuchar mensajes del plugin C++

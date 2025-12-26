@@ -31,3 +31,7 @@ xcuserdata
 node_modules
 package-lock.json
 dist
+
+# Environment variables
+.env.local
+.env*.local
