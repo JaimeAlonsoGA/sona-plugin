@@ -41,7 +41,5 @@ scripts/package-lock.json
 .env*.local
 
 # Generated audio output
-output/
+output/*
 !output/.gitkeep
-*.wav
-*.mp3

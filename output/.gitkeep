@@ -1,0 +1,5 @@
+# Output Directory
+
+This directory contains generated audio files from the Stable Audio API.
+
+Generated files are excluded from git tracking.
