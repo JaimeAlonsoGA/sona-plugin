@@ -27,3 +27,6 @@ Makefile
 
 workspace.xml
 xcuserdata
+
+node_modules
+package-lock.json

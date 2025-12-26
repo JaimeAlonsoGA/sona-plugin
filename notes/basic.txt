@@ -1,0 +1,25 @@
+Standalone init cmd::
+Start-Process -FilePath "D:\code\sona-plugin\build\Plugin\Sona_artefacts\Debug\Standalone\Sona.exe"
+
+cmake build en ./build::
+cd d:\code\sona-plugin\build;
+cmake --build . --config
+ o 
+cmake --build . --config Debug --target Sona_Standalone
+
+cmake --build . - Usa CMake para compilar
+--config Debug - Compila en modo Debug (con símbolos de depuración)
+--target Sona_Standalone - Compila solo el ejecutable standalone
+Targets disponibles:
+Sona_Standalone → Ejecutable independiente
+Sona_VST3 → Plugin VST3
+Sona_All → Todos los formatos
+
+El ejecutable generado está en:
+D:\code\sona-plugin\build\Plugin\Sona_artefacts\Debug\Standalone\Sona.exe
+
+Para compilar en Release (optimizado):
+cmake --build . --config Release --target Sona_Standalone
+
+vite react ui Start:: 
+npm run dev
