@@ -16,6 +16,19 @@ import type { CreateJobInput, GenerateJobResponse, Job, ApiErrorResponse } from 
  * @throws Error if not authenticated or submission fails
  */
 export async function submitJob(input: CreateJobInput): Promise<GenerateJobResponse> {
+  // Validate input before submission
+  if (!input.prompt || input.prompt.trim().length === 0) {
+    throw new Error('Prompt is required and cannot be empty')
+  }
+  
+  if (input.prompt.length > 500) {
+    throw new Error('Prompt must be 500 characters or less')
+  }
+  
+  if (input.duration !== undefined && (input.duration < 1 || input.duration > 60)) {
+    throw new Error('Duration must be between 1 and 60 seconds')
+  }
+
   // Validate that we have a session
   const { data: { session } } = await supabase.auth.getSession()
   

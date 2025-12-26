@@ -117,14 +117,23 @@ export function useJobSubscription(jobId: string | null, enabled = true) {
  * @returns Query result with job data
  */
 export function useJobPolling(jobId: string | null, enabled = true) {
-  const jobQuery = useJob(jobId, {
-    enabled,
-    // Poll every 2 seconds, but stop when job is completed or failed
+  // First, fetch the job to check its status
+  const jobQuery = useJob(jobId, { enabled })
+  
+  // Determine if we should continue polling based on job status
+  const shouldPoll = enabled && 
+    jobQuery.data?.status !== 'completed' && 
+    jobQuery.data?.status !== 'failed'
+
+  // Use a separate query with polling enabled only when needed
+  const pollingQuery = useJob(jobId, {
+    enabled: shouldPoll,
     refetchInterval: 2000,
   })
 
   // Also subscribe to real-time updates for instant feedback
   useJobSubscription(jobId, enabled)
 
-  return jobQuery
+  // Return the polling query if active, otherwise the regular query
+  return shouldPoll ? pollingQuery : jobQuery
 }
