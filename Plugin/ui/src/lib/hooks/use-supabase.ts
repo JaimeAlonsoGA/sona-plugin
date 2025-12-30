@@ -61,9 +61,10 @@ export function useAuthStateListener() {
 /**
  * Hook for sign in mutation
  * 
+ * @param options - Optional mutation options like onSuccess callback
  * @returns Mutation for signing in
  */
-export function useSignIn() {
+export function useSignIn(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
   
   return useMutation({
@@ -74,6 +75,8 @@ export function useSignIn() {
         // Update session cache
         queryClient.setQueryData(queryKeys.session, data.session)
       }
+      // Call custom onSuccess if provided
+      options?.onSuccess?.()
     },
   })
 }
@@ -81,9 +84,10 @@ export function useSignIn() {
 /**
  * Hook for sign up mutation
  * 
+ * @param options - Optional mutation options like onSuccess callback
  * @returns Mutation for signing up
  */
-export function useSignUp() {
+export function useSignUp(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
   
   return useMutation({
@@ -94,6 +98,8 @@ export function useSignUp() {
         // Update session cache
         queryClient.setQueryData(queryKeys.session, data.session)
       }
+      // Call custom onSuccess if provided
+      options?.onSuccess?.()
     },
   })
 }
@@ -101,9 +107,10 @@ export function useSignUp() {
 /**
  * Hook for sign out mutation
  * 
+ * @param options - Optional mutation options like onSuccess callback
  * @returns Mutation for signing out
  */
-export function useSignOut() {
+export function useSignOut(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
   
   return useMutation({
@@ -116,6 +123,8 @@ export function useSignOut() {
       // Remove all auth-related queries
       queryClient.removeQueries({ queryKey: queryKeys.session })
       queryClient.removeQueries({ queryKey: queryKeys.user })
+      // Call custom onSuccess if provided
+      options?.onSuccess?.()
     },
   })
 }

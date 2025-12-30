@@ -14,7 +14,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // CORS headers for web requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
 }
 
 // Input validation schema
@@ -31,7 +31,7 @@ interface JobRecord {
   duration: number
   quality: string
   mode: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'failed'
   created_at?: string
 }
 
@@ -80,32 +80,25 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Get authorization header
-    const authHeader = req.headers.get('Authorization')
+    // Get token from custom header (x-user-token) or Authorization header
+    // x-user-token is used because Supabase gateway may filter Authorization header
+    const customToken = req.headers.get('x-user-token')
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
     
-    // Initialize Supabase client with the auth token from the request
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: authHeader ? { Authorization: authHeader } : {},
-        },
-      }
-    )
-
-    // Verify JWT and get user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser()
-
-    if (authError || !user) {
-      console.error('Authentication failed:', authError)
+    // Extract token from either source
+    let token: string | null = null
+    if (customToken) {
+      token = customToken
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '')
+    }
+    
+    if (!token) {
+      console.error('No token found in headers')
       return new Response(
         JSON.stringify({ 
           error: 'Unauthorized',
-          message: 'Invalid or missing authentication token'
+          message: 'Missing authentication token'
         }),
         {
           status: 401,
@@ -114,7 +107,47 @@ serve(async (req: Request) => {
       )
     }
 
-    // Log authentication success (user ID is not PII, safe to log for debugging)
+    // Create Supabase client with the user's JWT to verify identity
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      }
+    )
+
+    // Verify the JWT and get the user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    
+    if (userError || !user) {
+      console.error('Token verification failed:', userError?.message || 'No user')
+      return new Response(
+        JSON.stringify({ 
+          error: 'Unauthorized',
+          message: 'Invalid authentication token'
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Create admin client for database operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
+
+    // Log authentication success
     console.log(`Request authenticated for user: ${user.id}`)
 
     // Parse request body
@@ -159,18 +192,19 @@ serve(async (req: Request) => {
       duration: body.duration ?? 10, // Default 10 seconds
       quality: body.quality ?? 'medium', // Default medium quality
       mode: body.mode ?? 'default',
-      status: 'pending',
+      status: 'queued',
     }
 
     // Log job creation (prompts are user content, not PII)
     console.log('Creating job with params:', {
+      user_id: user.id,
       duration: jobData.duration,
       quality: jobData.quality,
       mode: jobData.mode,
       promptLength: jobData.prompt.length
     })
 
-    const { data: job, error: dbError } = await supabaseClient
+    const { data: job, error: dbError } = await supabaseAdmin
       .from('jobs')
       .insert([jobData])
       .select()

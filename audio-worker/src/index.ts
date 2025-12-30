@@ -26,7 +26,7 @@ async function main() {
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}, shutting down gracefully...`);
       worker.stop();
-      
+
       // Give ongoing jobs a chance to finish
       setTimeout(() => {
         logger.info('Shutdown complete');

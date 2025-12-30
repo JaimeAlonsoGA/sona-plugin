@@ -90,8 +90,9 @@ npm start
 |----------|----------|---------|-------------|
 | `SUPABASE_URL` | Yes | - | Your Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | - | Supabase service role key (NOT anon key) |
-| `STABLE_AUDIO_API_KEY` | Yes | - | Your Stable Audio API key |
+| `STABLE_AUDIO_API_KEY` | Yes* | - | Your Stable Audio API key (*not required in test mode) |
 | `STABLE_AUDIO_API_URL` | No | `https://api.stability.ai/v2beta/stable-audio` | Stable Audio API endpoint |
+| `USE_TEST_AUDIO` | No | `false` | When `true`, uses local test.mp3 instead of Stable Audio API |
 | `MAX_CONCURRENT_JOBS` | No | `2` | Maximum number of concurrent jobs (1-10) |
 | `POLL_INTERVAL_MS` | No | `5000` | Polling interval in milliseconds (min 1000) |
 | `JOB_TIMEOUT_MS` | No | `300000` | Job timeout in milliseconds (min 10000) |
@@ -100,6 +101,20 @@ npm start
 | `MAX_RETRIES` | No | `3` | Maximum retry attempts for failed API calls (0-10) |
 | `RETRY_DELAY_MS` | No | `2000` | Base delay between retries in milliseconds |
 | `LOG_LEVEL` | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
+
+## Test Mode
+
+For end-to-end testing without consuming Stable Audio API credits, you can enable test mode:
+
+```bash
+USE_TEST_AUDIO=true npm run dev
+```
+
+In test mode:
+- The worker uses `src/assets/test.mp3` instead of calling the Stable Audio API
+- All job processing flows normally (DB updates, Storage uploads, etc.)
+- Perfect for testing the frontend-to-backend integration
+- No Stable Audio API key required
 
 ## Database Schema
 

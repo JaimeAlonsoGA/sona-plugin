@@ -2,7 +2,7 @@
  * Type definitions for the audio worker service
  */
 
-export type JobStatus = 'pending' | 'queued' | 'processing' | 'completed' | 'failed';
+export type JobStatus =  'queued' | 'processing' | 'completed' | 'failed';
 export type QualityLevel = 'low' | 'medium' | 'high';
 
 export interface Job {
@@ -15,11 +15,13 @@ export interface Job {
   status: JobStatus;
   created_at: string;
   updated_at: string;
+  started_at?: string | null;
   completed_at?: string | null;
   error_message?: string | null;
-  result_url?: string | null;
-  wav_url?: string | null;
-  mp3_url?: string | null;
+  /** Path to master WAV file in storage */
+  master_path?: string | null;
+  /** Path to preview MP3 file in storage */
+  preview_path?: string | null;
 }
 
 export interface WorkerConfig {
@@ -35,6 +37,8 @@ export interface WorkerConfig {
   maxRetries: number;
   retryDelayMs: number;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+  /** When true, uses test.mp3 instead of calling Stable Audio API */
+  useTestAudio: boolean;
 }
 
 export interface StableAudioRequest {
@@ -50,7 +54,9 @@ export interface StableAudioResponse {
 
 export interface ProcessingResult {
   success: boolean;
-  wavUrl?: string;
-  mp3Url?: string;
+  /** Path to master WAV file in storage */
+  masterPath?: string;
+  /** Path to preview MP3 file in storage */
+  previewPath?: string;
   error?: string;
 }

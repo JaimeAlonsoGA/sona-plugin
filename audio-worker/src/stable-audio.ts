@@ -1,5 +1,9 @@
 /**
  * Stable Audio API client with retry logic
+ * 
+ * Uses the Stable Audio 2.5 API from Stability AI
+ * Endpoint: POST /v2beta/audio/stable-audio-2/text-to-audio
+ * Documentation: https://platform.stability.ai/docs/api-reference#tag/Stable-Audio-2
  */
 
 import { WorkerConfig, StableAudioRequest, StableAudioResponse } from './types.js';
@@ -32,7 +36,7 @@ export class StableAudioClient {
         });
 
         const response = await this.callStableAudioAPI(request);
-        
+
         if (response) {
           logger.info('Audio generated successfully');
           return response;
@@ -50,27 +54,28 @@ export class StableAudioClient {
   /**
    * Call the Stable Audio API
    * 
-   * This implementation follows the Stable Audio API specification.
-   * Update the endpoint URL and request format based on your specific
-   * API version and requirements from the Stable Audio documentation.
+   * Uses multipart/form-data as required by the API
+   * Endpoint: POST /v2beta/audio/stable-audio-2/text-to-audio
    */
   private async callStableAudioAPI(request: StableAudioRequest): Promise<StableAudioResponse | null> {
     try {
-      // Build the request payload based on Stable Audio API specs
-      const payload = {
-        prompt: request.prompt,
-        duration: request.duration,
-        ...(request.quality && { quality: request.quality }),
-      };
+      // Build multipart form data
+      const formData = new FormData();
+      formData.append('prompt', request.prompt);
+      formData.append('duration', String(request.duration));
+      formData.append('output_format', 'wav');
+      formData.append('model', 'stable-audio-2.5');
+      
+      // Add empty file field as required by the API
+      formData.append('none', '');
 
       const response = await fetch(this.config.stableAudioApiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.config.stableAudioApiKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'audio/wav',
+          'Accept': 'audio/*',
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -81,7 +86,7 @@ export class StableAudioClient {
       // Check content type to determine audio format
       const contentType = response.headers.get('content-type') || '';
       let format = 'wav';
-      
+
       if (contentType.includes('audio/mpeg') || contentType.includes('audio/mp3')) {
         format = 'mp3';
       } else if (contentType.includes('audio/wav') || contentType.includes('audio/wave')) {

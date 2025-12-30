@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { submitJob, getJob, getUserJobs, subscribeToJob } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 
@@ -16,6 +16,7 @@ import type { CreateJobInput, Job } from '../../types/jobs'
 export const jobQueryKeys = {
   all: ['jobs'] as const,
   list: () => [...jobQueryKeys.all, 'list'] as const,
+  completed: () => [...jobQueryKeys.all, 'completed'] as const,
   detail: (id: string) => [...jobQueryKeys.all, 'detail', id] as const,
 }
 
@@ -32,7 +33,7 @@ export function useSubmitJob() {
     onSuccess: (data) => {
       // Add the new job to the cache
       queryClient.setQueryData(jobQueryKeys.detail(data.job_id), data.job)
-      
+
       // Invalidate the list to refresh it
       queryClient.invalidateQueries({ queryKey: jobQueryKeys.list() })
     },
@@ -75,9 +76,36 @@ export function useUserJobs(limit = 50) {
   return useQuery({
     queryKey: jobQueryKeys.list(),
     queryFn: () => getUserJobs(limit),
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: 1000 * 60, // 1 minute - data considered fresh
+    gcTime: 1000 * 60 * 5, // 5 minutes - keep in cache
     retry: 1,
   })
+}
+
+/**
+ * Hook to get only completed jobs with audio
+ * Uses the same cached data as useUserJobs for efficiency
+ * 
+ * @param limit - Maximum number of jobs to fetch
+ * @returns Query result with completed jobs that have audio
+ */
+export function useCompletedJobs(limit = 50) {
+  const { data: jobs, ...rest } = useUserJobs(limit)
+  
+  const completedJobs = useMemo(() => {
+    if (!jobs) return []
+    return jobs.filter(
+      (job): job is Job & { preview_path: string } => 
+        job.status === 'completed' && job.preview_path !== null
+    )
+  }, [jobs])
+
+  return {
+    ...rest,
+    data: completedJobs,
+    totalCount: jobs?.length ?? 0,
+    completedCount: completedJobs.length,
+  }
 }
 
 /**
@@ -95,7 +123,7 @@ export function useJobSubscription(jobId: string | null, enabled = true) {
     const { unsubscribe } = subscribeToJob(jobId, (updatedJob: Job) => {
       // Update the cache with the new job data
       queryClient.setQueryData(jobQueryKeys.detail(jobId), updatedJob)
-      
+
       // Also invalidate the list to keep it in sync
       queryClient.invalidateQueries({ queryKey: jobQueryKeys.list() })
     })
@@ -119,10 +147,10 @@ export function useJobSubscription(jobId: string | null, enabled = true) {
 export function useJobPolling(jobId: string | null, enabled = true) {
   // First, fetch the job to check its status
   const jobQuery = useJob(jobId, { enabled })
-  
+
   // Determine if we should continue polling based on job status
-  const shouldPoll = enabled && 
-    jobQuery.data?.status !== 'completed' && 
+  const shouldPoll = enabled &&
+    jobQuery.data?.status !== 'completed' &&
     jobQuery.data?.status !== 'failed'
 
   // Use a separate query with polling enabled only when needed

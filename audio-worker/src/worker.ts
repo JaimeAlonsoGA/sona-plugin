@@ -7,12 +7,14 @@ import { WorkerConfig, Job, ProcessingResult } from './types.js';
 import { logger } from './logger.js';
 import { SupabaseService } from './supabase.js';
 import { StableAudioClient } from './stable-audio.js';
+import { TestAudioClient } from './test-audio.js';
 import { AudioProcessor } from './audio-processor.js';
 
 export class AudioWorker {
   private config: WorkerConfig;
   private supabase: SupabaseService;
   private stableAudio: StableAudioClient;
+  private testAudio: TestAudioClient;
   private audioProcessor: AudioProcessor;
   private isRunning: boolean = false;
   private limit: ReturnType<typeof pLimit>;
@@ -21,10 +23,15 @@ export class AudioWorker {
     this.config = config;
     this.supabase = new SupabaseService(config);
     this.stableAudio = new StableAudioClient(config);
+    this.testAudio = new TestAudioClient();
     this.audioProcessor = new AudioProcessor();
     this.limit = pLimit(config.maxConcurrentJobs);
     
     logger.setLevel(config.logLevel);
+
+    if (config.useTestAudio) {
+      logger.info('🧪 TEST MODE ENABLED: Using local test audio file instead of Stable Audio API');
+    }
   }
 
   /**
@@ -107,18 +114,24 @@ export class AudioWorker {
       prompt: job.prompt.substring(0, 50) + (job.prompt.length > 50 ? '...' : ''),
       duration: job.duration,
       quality: job.quality,
+      testMode: this.config.useTestAudio,
     });
 
     try {
-      // Generate audio using Stable Audio API
-      const audioResponse = await this.stableAudio.generateAudio({
+      // Generate audio using Stable Audio API or test audio client
+      const audioClient = this.config.useTestAudio ? this.testAudio : this.stableAudio;
+      const audioResponse = await audioClient.generateAudio({
         prompt: job.prompt,
         duration: job.duration,
         quality: job.quality,
       });
 
       if (!audioResponse) {
-        throw new Error('Failed to generate audio from Stable Audio API');
+        throw new Error(
+          this.config.useTestAudio 
+            ? 'Failed to load test audio file' 
+            : 'Failed to generate audio from Stable Audio API'
+        );
       }
 
       // Process audio (ensure WAV and create MP3)
@@ -147,21 +160,21 @@ export class AudioWorker {
         throw new Error(result.error || 'Failed to upload audio files');
       }
 
-      // Update job with results
+      // Update job with results (paths, not URLs)
       const updated = await this.supabase.updateJobResult(
         job.id,
-        result.wavUrl!,
-        result.mp3Url!
+        result.masterPath!,
+        result.previewPath!
       );
 
       if (!updated) {
-        throw new Error('Failed to update job with result URLs');
+        throw new Error('Failed to update job with result paths');
       }
 
       const duration = Date.now() - startTime;
       logger.info(`Job ${job.id} completed successfully in ${duration}ms`, {
-        wavUrl: result.wavUrl,
-        mp3Url: result.mp3Url,
+        masterPath: result.masterPath,
+        previewPath: result.previewPath,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -187,9 +200,9 @@ export class AudioWorker {
 
       // Upload WAV (master file)
       logger.info('Uploading WAV file...');
-      const wavUrl = await this.supabase.uploadAudio(wavPath, wavBuffer, 'audio/wav');
+      const masterPath = await this.supabase.uploadAudio(wavPath, wavBuffer, 'audio/wav');
 
-      if (!wavUrl) {
+      if (!masterPath) {
         return {
           success: false,
           error: 'Failed to upload WAV file',
@@ -198,9 +211,9 @@ export class AudioWorker {
 
       // Upload MP3 (preview file)
       logger.info('Uploading MP3 file...');
-      const mp3Url = await this.supabase.uploadAudio(mp3Path, mp3Buffer, 'audio/mpeg');
+      const previewPath = await this.supabase.uploadAudio(mp3Path, mp3Buffer, 'audio/mpeg');
 
-      if (!mp3Url) {
+      if (!previewPath) {
         return {
           success: false,
           error: 'Failed to upload MP3 file',
@@ -209,8 +222,8 @@ export class AudioWorker {
 
       return {
         success: true,
-        wavUrl,
-        mp3Url,
+        masterPath,
+        previewPath,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

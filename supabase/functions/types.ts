@@ -9,7 +9,7 @@
  * Database Types
  */
 
-export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type JobStatus = 'queued' | 'processing' | 'completed' | 'failed'
 export type QualityLevel = 'low' | 'medium' | 'high'
 
 export interface Job {
@@ -71,7 +71,7 @@ CREATE TABLE jobs (
   duration INTEGER NOT NULL DEFAULT 10,
   quality TEXT NOT NULL DEFAULT 'medium',
   mode TEXT NOT NULL DEFAULT 'default',
-  status TEXT NOT NULL DEFAULT 'pending',
+  status TEXT NOT NULL DEFAULT 'queued',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   completed_at TIMESTAMP WITH TIME ZONE,

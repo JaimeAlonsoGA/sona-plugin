@@ -17,6 +17,7 @@ export {
   useSubmitJob,
   useJob,
   useUserJobs,
+  useCompletedJobs,
   useJobSubscription,
   useJobPolling,
   jobQueryKeys,

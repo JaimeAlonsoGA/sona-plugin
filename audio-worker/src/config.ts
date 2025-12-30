@@ -15,7 +15,7 @@ export function loadConfig(): WorkerConfig {
   const config: WorkerConfig = {
     supabaseUrl: getEnv('SUPABASE_URL'),
     supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
-    stableAudioApiKey: getEnv('STABLE_AUDIO_API_KEY'),
+    stableAudioApiKey: getEnv('STABLE_AUDIO_API_KEY', 'dummy-key-for-test-mode'),
     stableAudioApiUrl: getEnv('STABLE_AUDIO_API_URL', 'https://api.stability.ai/v2beta/stable-audio'),
     maxConcurrentJobs: parseInt(getEnv('MAX_CONCURRENT_JOBS', '2'), 10),
     pollIntervalMs: parseInt(getEnv('POLL_INTERVAL_MS', '5000'), 10),
@@ -25,6 +25,7 @@ export function loadConfig(): WorkerConfig {
     maxRetries: parseInt(getEnv('MAX_RETRIES', '3'), 10),
     retryDelayMs: parseInt(getEnv('RETRY_DELAY_MS', '2000'), 10),
     logLevel: (getEnv('LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error'),
+    useTestAudio: getEnv('USE_TEST_AUDIO', 'false').toLowerCase() === 'true',
   };
 
   // Validate configuration
@@ -69,8 +70,9 @@ function validateConfig(config: WorkerConfig): void {
     errors.push('Invalid SUPABASE_SERVICE_ROLE_KEY');
   }
 
-  if (config.stableAudioApiKey.length < 20) {
-    errors.push('Invalid STABLE_AUDIO_API_KEY');
+  // Only validate Stable Audio API key if not in test mode
+  if (!config.useTestAudio && config.stableAudioApiKey.length < 20) {
+    errors.push('Invalid STABLE_AUDIO_API_KEY (set USE_TEST_AUDIO=true to skip)');
   }
 
   // Validate numeric values

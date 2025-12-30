@@ -4,27 +4,30 @@
  * These types match the database schema and Edge Functions API contracts
  */
 
+import type { Tables } from './database.types'
+
 export type JobStatus = 'pending' | 'queued' | 'processing' | 'completed' | 'failed'
 export type QualityLevel = 'low' | 'medium' | 'high'
 
 /**
- * Job record from database
+ * Job record from database - uses the generated database types
  */
-export interface Job {
-  id: string
-  user_id: string
-  prompt: string
-  duration: number
-  quality: QualityLevel
-  mode: string
-  status: JobStatus
-  created_at: string
-  updated_at: string
-  completed_at?: string | null
-  error_message?: string | null
-  result_url?: string | null
-  wav_url?: string | null
-  mp3_url?: string | null
+export type Job = Tables<'jobs'>
+
+/**
+ * Completed job with required audio paths
+ */
+export interface CompletedJob extends Job {
+  status: 'completed'
+  preview_path: string
+  completed_at: string
+}
+
+/**
+ * Helper to check if a job is completed with audio
+ */
+export function isCompletedJob(job: Job): job is CompletedJob {
+  return job.status === 'completed' && job.preview_path !== null
 }
 
 /**

@@ -37,15 +37,27 @@ export async function submitJob(input: CreateJobInput): Promise<GenerateJobRespo
   }
 
   try {
-    // Call the generate Edge Function
-    const { data, error } = await supabase.functions.invoke<GenerateJobResponse | ApiErrorResponse>('generate', {
-      body: input,
+    // Call the generate Edge Function using fetch directly
+    // Send token in custom header because Supabase gateway filters Authorization header
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'x-user-token': session.access_token,
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(input),
     })
 
-    if (error) {
-      console.error('Edge Function error:', error)
-      throw new Error(`Failed to submit job: ${error.message}`)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Edge Function error:', response.status, errorText)
+      throw new Error(`Failed to submit job: ${response.status} - ${errorText}`)
     }
+
+    const data = await response.json() as GenerateJobResponse | ApiErrorResponse
 
     if (!data || !('success' in data)) {
       throw new Error('Invalid response from server')

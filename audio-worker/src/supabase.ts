@@ -34,7 +34,7 @@ export class SupabaseService {
       const { data: jobs, error: fetchError } = await this.client
         .from('jobs')
         .select('*')
-        .in('status', ['queued', 'pending'])
+        .in('status', ['queued'])
         .order('created_at', { ascending: true })
         .limit(1);
 
@@ -125,16 +125,15 @@ export class SupabaseService {
    */
   async updateJobResult(
     jobId: string,
-    wavUrl: string,
-    mp3Url: string
+    masterPath: string,
+    previewPath: string
   ): Promise<boolean> {
     try {
       const { error } = await this.client
         .from('jobs')
         .update({
-          wav_url: wavUrl,
-          mp3_url: mp3Url,
-          result_url: mp3Url, // Backwards compatibility with existing frontend code expecting result_url
+          master_path: masterPath,
+          preview_path: previewPath,
           status: 'completed',
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -146,7 +145,7 @@ export class SupabaseService {
         return false;
       }
 
-      logger.info(`Job ${jobId} completed with WAV and MP3 URLs`);
+      logger.info(`Job ${jobId} completed with master and preview paths`);
       return true;
     } catch (error) {
       logger.error('Error updating job result:', error);
@@ -156,6 +155,7 @@ export class SupabaseService {
 
   /**
    * Upload audio file to Supabase Storage
+   * @returns The storage path of the uploaded file (not the full URL)
    */
   async uploadAudio(
     filePath: string,
@@ -175,13 +175,9 @@ export class SupabaseService {
         return null;
       }
 
-      // Get public URL
-      const { data: urlData } = this.client.storage
-        .from(this.config.storageBucket)
-        .getPublicUrl(data.path);
-
-      logger.info('File uploaded successfully:', urlData.publicUrl);
-      return urlData.publicUrl;
+      // Return the storage path (not the full URL)
+      logger.info('File uploaded successfully:', data.path);
+      return data.path;
     } catch (error) {
       logger.error('Error uploading audio:', error);
       return null;

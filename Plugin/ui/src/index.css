@@ -19,3 +19,26 @@ body {
   width: 100vw;
   height: 100vh;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2A3E40;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #E47640, #b45309);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #E47640, #9a4606);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
