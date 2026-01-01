@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from "react"
-import { Play, Pause, Save, Copy, Bolt } from "lucide-react"
+import { Play, Pause, Download, Clock, Sparkles, User, Loader2, Wand2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useIsAuthenticated, useJobPolling, useSubmitJob } from "../lib/hooks"
 import { CreateJobInput } from "../types/jobs"
@@ -7,7 +7,7 @@ import { getStorageUrl } from "../lib/utils"
 import WaveSurfer from "wavesurfer.js"
 import { useNavigate } from "react-router-dom"
 
-type QualityLevel = "sorcerer" | "creator"
+type QualityLevel = "standard" | "high"
 
 // Format seconds to mm:ss
 const formatTime = (seconds: number): string => {
@@ -18,16 +18,14 @@ const formatTime = (seconds: number): string => {
 }
 
 export default function SonaPage() {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const [prompt, setPrompt] = useState("")
-    const [mode, setMode] = useState<"designer" | "producer">("designer")
     const [currentJobId, setCurrentJobId] = useState<string | null>(null)
-    const [isEditing, setIsEditing] = useState<boolean>(false)
 
     // Audio generation settings
     const [duration, setDuration] = useState<number>(10)
-    const [quality, setQuality] = useState<QualityLevel>("sorcerer")
+    const [quality, setQuality] = useState<QualityLevel>("standard")
 
     const isAuthenticated = useIsAuthenticated()
     const submitJobMutation = useSubmitJob()
@@ -50,8 +48,6 @@ export default function SonaPage() {
 
     // Build URLs from storage paths
     const previewUrl = useMemo(() => getStorageUrl(job?.preview_path ?? null), [job?.preview_path])
-    // masterUrl is available for future use (high quality export)
-    // const masterUrl = useMemo(() => getStorageUrl(job?.master_path ?? null), [job?.master_path])
 
     // Initialize WaveSurfer
     useEffect(() => {
@@ -59,14 +55,14 @@ export default function SonaPage() {
 
         const wavesurfer = WaveSurfer.create({
             container: waveformRef.current,
-            waveColor: '#133A28',
+            waveColor: '#467A5D',
             progressColor: '#F6E092',
             cursorColor: '#E47640',
             cursorWidth: 2,
-            barWidth: 3,
-            barGap: 2,
-            barRadius: 3,
-            height: 48,
+            barWidth: 2,
+            barGap: 1,
+            barRadius: 2,
+            height: 56,
             normalize: true,
             backend: 'WebAudio',
         })
@@ -112,7 +108,6 @@ export default function SonaPage() {
         }
     }, [previewUrl])
 
-    // Audio player controls
     const togglePlayPause = () => {
         if (!wavesurferRef.current || !previewUrl || !isWaveformReady) return
         wavesurferRef.current.playPause()
@@ -127,7 +122,7 @@ export default function SonaPage() {
             const url = URL.createObjectURL(blob)
             const link = document.createElement('a')
             link.href = url
-            link.download = `sona-audio-${Date.now()}.mp3`
+            link.download = `sona-${prompt.slice(0, 30).replace(/\s+/g, '-')}-${Date.now()}.mp3`
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
@@ -137,340 +132,271 @@ export default function SonaPage() {
         }
     }
 
-    const handleCopyAudio = async () => {
-        if (!previewUrl) return
-
-        try {
-            const response = await fetch(previewUrl)
-            const blob = await response.blob()
-            await navigator.clipboard.write([
-                new ClipboardItem({
-                    [blob.type]: blob
-                })
-            ])
-            console.log('Audio copied to clipboard')
-        } catch (error) {
-            // Fallback: copy the URL instead
-            try {
-                await navigator.clipboard.writeText(previewUrl)
-                console.log('Audio URL copied to clipboard')
-            } catch (fallbackError) {
-                console.error('Failed to copy audio:', fallbackError)
-            }
-        }
-    }
-
-    // Map quality levels to API values
     const getApiQuality = (q: QualityLevel): 'low' | 'medium' | 'high' => {
-        return q === "creator" ? "high" : "medium"
+        return q === "high" ? "high" : "medium"
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!prompt.trim()) return
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault()
+        if (!prompt.trim() || isGenerating) return
 
         const input: CreateJobInput = {
             prompt: prompt.trim(),
             duration: duration,
             quality: getApiQuality(quality),
-            mode: mode,
+            mode: "designer",
         }
 
         try {
             const response = await submitJobMutation.mutateAsync(input)
             setCurrentJobId(response.job_id)
-            console.log('Audio job submitted:', response.job_id)
         } catch (error) {
             console.error('Failed to submit job:', error)
         }
     }
 
-    const state = job?.status === "queued" ? "Queued"
-        : job?.status === "processing" ? "Processing"
-            : job?.status === "failed" ? "Failed"
-                : undefined
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            handleSubmit()
+        }
+    }
 
     // Duration presets
-    const durationPresets = [1, 3, 10, 15, 30, 60]
+    const durationPresets = [
+        { value: 3, label: "3s" },
+        { value: 10, label: "10s" },
+        { value: 30, label: "30s" },
+        { value: 60, label: "60s" },
+    ]
 
     if (!isAuthenticated) {
         return (
-            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4 text-yellow-400">
-                <p>Please sign in to generate audio.</p>
+            <div className="page bg-[#1a1a1a] flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-[#F6E092] text-2xl font-bold mb-2">Welcome to Sona</h2>
+                    <p className="text-[#EFEDD7]/60 mb-4">Sign in to start generating sounds</p>
+                    <button 
+                        onClick={() => navigate('/auth')}
+                        className="bg-[#E47640] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#E47640]/90 transition-colors"
+                    >
+                        Sign In
+                    </button>
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="page bg-[#467A5D] flex items-center justify-between p-6">
-            <div className="flex flex-row w-full items-center justify-between mb-8">
-                {/* User & Tier */}
-                <button onClick={() => navigate("/profile")} className="flex items-start gap-3 pl-2">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#692A12] to-[#E47640]" />
-                    {/* <span className="text-[#2A3E40] text-5xl font-bold tracking-tight">pro</span> */}
-                </button>
-
-                <div>
+        <div className="page bg-[#1a1a1a] flex flex-col">
+            {/* Header */}
+            <header className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a]">
+                <div className="flex items-center gap-3">
+                    <span className="text-[#F6E092] text-2xl font-bold tracking-wide">SONA</span>
+                    <span className="text-[#EFEDD7]/30 text-xs">by Prototip</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    {/* Status Badge */}
                     <AnimatePresence mode="wait">
-                        {state && (
-                            <motion.p
-                                key={state}
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: 10, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="text-[#EFEDD7]/60 font-medium border rounded-lg px-2 py-1 text-center bg-[#133A28]/30 border-[#EFEDD7]/20"
+                        {isGenerating && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="flex items-center gap-2 bg-[#E47640]/20 text-[#E47640] px-3 py-1.5 rounded-full text-xs font-medium"
                             >
-                                {state}
-                            </motion.p>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                {job?.status === "queued" ? "Queued" : "Generating"}
+                            </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
 
-                {/* Waveform & Controls - Audio Player */}
-                <div className="flex items-center gap-4">
                     <button
-                        onClick={togglePlayPause}
-                        disabled={!previewUrl || !isWaveformReady}
-                        className={`hover:opacity-80 transition-opacity ${!previewUrl || !isWaveformReady ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        onClick={() => navigate("/profile")}
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E47640] to-[#692A12] flex items-center justify-center hover:opacity-90 transition-opacity"
                     >
-                        {isPlaying ? (
-                            <Pause className="text-[#692A12]" fill="#692A12" size={40} />
-                        ) : (
-                            <Play className="text-[#692A12]" fill="#692A12" size={40} />
-                        )}
+                        <User className="w-4 h-4 text-white" />
                     </button>
-                    {job?.status === "failed" && (
-                        <div className="text-red-400 font-medium">
-                            Error: {job.error_message || 'Unknown error'}
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col p-5 gap-4 overflow-hidden">
+                {/* Prompt Section */}
+                <div className="flex-1 flex flex-col gap-3 min-h-0">
+                    <label className="text-[#EFEDD7]/60 text-xs font-medium uppercase tracking-wider">
+                        Describe your sound
+                    </label>
+                    <div className="flex-1 relative">
+                        <textarea
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            disabled={isGenerating}
+                            placeholder="A cinematic orchestral hit with deep brass, thundering timpani, and ethereal strings..."
+                            className="w-full h-full bg-[#2a2a2a] text-[#EFEDD7] rounded-xl p-4 resize-none outline-none border border-[#3a3a3a] focus:border-[#E47640]/50 transition-colors placeholder:text-[#EFEDD7]/30 text-sm leading-relaxed disabled:opacity-50"
+                        />
+                        <div className="absolute bottom-3 right-3 text-[#EFEDD7]/30 text-xs">
+                            ⌘ + Enter to generate
                         </div>
-                    )}
-
-                    <div className="flex-1 rounded-md p-2 bg-[#4A6456]/40 relative min-w-[300px]">
-                        {/* WaveSurfer container */}
-                        <div
-                            ref={waveformRef}
-                            className={`w-full ${!previewUrl ? 'opacity-40' : ''}`}
-                        />
-                        {/* Loading indicator */}
-                        {previewUrl && !isWaveformReady && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-6 h-6 border-2 border-[#F6E092] border-t-transparent rounded-full animate-spin" />
-                            </div>
-                        )}
-                        {/* Time display */}
-                        {previewUrl && isWaveformReady && (
-                            <div className="absolute bottom-0 right-2 text-[#F6E092]/80 text-xs font-mono z-10">
-                                {formatTime(currentTime)} / {formatTime(audioDuration)}
-                            </div>
-                        )}
                     </div>
-
-                    <button
-                        onClick={handleSaveAudio}
-                        disabled={!previewUrl}
-                        className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
-                        title="Save audio"
-                    >
-                        <Save size={32} strokeWidth={1.5} />
-                    </button>
-                    <button
-                        onClick={handleCopyAudio}
-                        disabled={!previewUrl}
-                        className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
-                        title="Copy audio to clipboard"
-                    >
-                        <Copy size={32} strokeWidth={1.5} />
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-center w-full gap-10">
-                {/* Plugin Name (SONA) */}
-                <div className="flex flex-col items-center">
-                    <span
-                        className="text-[#F6E092] text-6xl font-bold tracking-wider"
-                        style={{ writingMode: "vertical-lr", textOrientation: "sideways" }}
-                    >
-                        SONA
-                    </span>
                 </div>
 
-                <div className="flex flex-row w-full items-center justify-between">
-                    {/* Circular Prompt Input / Settings Panel */}
-                    <div className="relative flex items-center justify-center">
-                        <motion.div
-                            className="absolute w-56 h-56 bg-[#133A28] rounded-full mr-2 z-10"
-                            animate={{
-                                boxShadow: quality === "creator"
-                                    ? "-10px 0px 20px 5px rgba(246, 224, 146, 0.4)"
-                                    : "none"
-                            }}
-                            transition={{ duration: 0.5 }}
-                        />
-                        <motion.div
-                            className="z-20 w-52 h-52 rounded-full bg-[#36795E] flex items-center justify-center overflow-hidden"
-                            animate={isGenerating ? { scale: [1, 1.02, 1] } : { scale: 1 }}
-                            transition={isGenerating ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
-                        >
-                            <AnimatePresence mode="wait">
-                                {isEditing ? (
-                                    // Settings Panel
-                                    <motion.div
-                                        key="settings"
-                                        initial={{ opacity: 0, rotateY: 90 }}
-                                        animate={{ opacity: 1, rotateY: 0 }}
-                                        exit={{ opacity: 0, rotateY: -90 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="flex flex-col items-center justify-center gap-4 p-4 w-full"
-                                    >
-                                        {/* Duration Setting */}
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="flex items-center gap-2 text-[#EFEDD7]">
-                                                {/* <Clock size={16} /> */}
-                                                <span className="text-sm font-semibold">Duration</span>
-                                            </div>
-                                            <div className="flex flex-wrap justify-center gap-1">
-                                                {durationPresets.map((d) => (
-                                                    <button
-                                                        key={d}
-                                                        onClick={() => setDuration(d)}
-                                                        className={`px-2 py-1 rounded text-xs font-bold transition-all ${duration === d
-                                                            ? "bg-[#E8D199] text-[#133A28]"
-                                                            : "bg-[#133A28]/50 text-[#EFEDD7] hover:bg-[#133A28]/70"
-                                                            }`}
-                                                    >
-                                                        {d}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Quality Setting */}
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="flex items-center gap-2 text-[#EFEDD7]">
-                                                {/* <Sparkles size={16} /> */}
-                                                <span className="text-sm font-semibold">Quality</span>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => setQuality("sorcerer")}
-                                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${quality === "sorcerer"
-                                                        ? "bg-gradient-to-r from-[#6B7782] to-[#E47640] text-[#EFEDD7]"
-                                                        : "bg-[#133A28]/50 text-[#EFEDD7] hover:bg-[#133A28]/70"
-                                                        }`}
-                                                >
-                                                    Sorcerer
-                                                </button>
-                                                <button
-                                                    onClick={() => setQuality("creator")}
-                                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${quality === "creator"
-                                                        ? "bg-gradient-to-r from-[#F6E092] to-[#FFFFFF] text-[#133A28]"
-                                                        : "bg-[#133A28]/50 text-[#EFEDD7] hover:bg-[#133A28]/70"
-                                                        }`}
-                                                >
-                                                    Creator
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Current Settings Summary */}
-                                        <div className="text-[#EFEDD7]/60 text-xs text-center mt-1">
-                                            {duration}s • {quality === "creator" ? "High" : "Medium"} quality
-                                        </div>
-                                    </motion.div>
-                                ) : (
-                                    // Prompt Input
-                                    <motion.textarea
-                                        key="prompt"
-                                        initial={{ opacity: 0, rotateY: -90 }}
-                                        animate={{ opacity: 1, rotateY: 0 }}
-                                        exit={{ opacity: 0, rotateY: 90 }}
-                                        transition={{ duration: 0.3 }}
-                                        value={prompt}
-                                        disabled={isGenerating}
-                                        onChange={(e) => setPrompt(e.target.value)}
-                                        placeholder="Write your prompt here..."
-                                        className="overflow-y-hidden p-8 bg-transparent text-[#EFEDD7] placeholder:text-[#EFEDD7]/60 resize-none outline-none font-bold leading-relaxed text-2xl text-pretty"
-                                    />
-                                )}
-                            </AnimatePresence>
-                        </motion.div>
+                {/* Settings Row */}
+                <div className="flex items-center gap-4">
+                    {/* Duration */}
+                    <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-[#EFEDD7]/40" />
+                        <div className="flex bg-[#2a2a2a] rounded-lg p-1 gap-1">
+                            {durationPresets.map((preset) => (
+                                <button
+                                    key={preset.value}
+                                    onClick={() => setDuration(preset.value)}
+                                    disabled={isGenerating}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                        duration === preset.value
+                                            ? "bg-[#467A5D] text-[#EFEDD7]"
+                                            : "text-[#EFEDD7]/60 hover:text-[#EFEDD7] hover:bg-[#3a3a3a]"
+                                    } disabled:opacity-50`}
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <motion.button
-                        onClick={() => setIsEditing(!isEditing)}
-                        className={`w-8 h-8 rounded-full transition-all duration-300 flex items-center justify-center ${isEditing
-                            ? "bg-[#E47640]/80"
-                            : "bg-[#574a64]"
-                            }`}
-                        animate={{ rotate: isEditing ? 0 : 180 }}
-                        transition={{ duration: 0.3 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        title={isEditing ? "Back to prompt" : "Settings"}
-                    >
-                        <Bolt className="text-[#F8F2CF]/60 hover:opacity-70 transition-opacity" size={20} />
-                    </motion.button>
+                    {/* Quality */}
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#EFEDD7]/40" />
+                        <div className="flex bg-[#2a2a2a] rounded-lg p-1 gap-1">
+                            <button
+                                onClick={() => setQuality("standard")}
+                                disabled={isGenerating}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                    quality === "standard"
+                                        ? "bg-[#467A5D] text-[#EFEDD7]"
+                                        : "text-[#EFEDD7]/60 hover:text-[#EFEDD7] hover:bg-[#3a3a3a]"
+                                } disabled:opacity-50`}
+                            >
+                                Standard
+                            </button>
+                            <button
+                                onClick={() => setQuality("high")}
+                                disabled={isGenerating}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                    quality === "high"
+                                        ? "bg-gradient-to-r from-[#F6E092] to-[#E47640] text-[#1a1a1a]"
+                                        : "text-[#EFEDD7]/60 hover:text-[#EFEDD7] hover:bg-[#3a3a3a]"
+                                } disabled:opacity-50`}
+                            >
+                                High
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
 
                     {/* Generate Button */}
-                    <div className="relative ml-8">
-                        <motion.button
-                            disabled={!prompt || isGenerating}
-                            onClick={handleSubmit}
-                            className={`${prompt && !isGenerating ? "bg-[#E47640] text-[#F8F2CF]" : "bg-[#6B7782] text-[#F8F2CF]/40 cursor-not-allowed"} w-52 h-52 rounded-3xl flex items-center justify-center`}
-                            whileHover={prompt && !isGenerating ? { scale: 1.05 } : {}}
-                            whileTap={prompt && !isGenerating ? { scale: 0.98 } : {}}
-                            animate={isGenerating ? {
-                                scale: [1, 1.02, 1],
-                                opacity: [1, 0.8, 1]
-                            } : {}}
-                            transition={isGenerating ? {
-                                duration: 1.5,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            } : { duration: 0.2 }}
+                    <motion.button
+                        onClick={handleSubmit}
+                        disabled={!prompt.trim() || isGenerating}
+                        whileHover={prompt.trim() && !isGenerating ? { scale: 1.02 } : {}}
+                        whileTap={prompt.trim() && !isGenerating ? { scale: 0.98 } : {}}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all ${
+                            prompt.trim() && !isGenerating
+                                ? "bg-[#E47640] text-white hover:bg-[#E47640]/90"
+                                : "bg-[#3a3a3a] text-[#EFEDD7]/40 cursor-not-allowed"
+                        }`}
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <Wand2 className="w-4 h-4" />
+                                Generate
+                            </>
+                        )}
+                    </motion.button>
+                </div>
+
+                {/* Audio Player */}
+                <div className={`bg-[#2a2a2a] rounded-xl p-4 border border-[#3a3a3a] transition-opacity ${!previewUrl ? 'opacity-50' : ''}`}>
+                    <div className="flex items-center gap-4">
+                        {/* Play Button */}
+                        <button
+                            onClick={togglePlayPause}
+                            disabled={!previewUrl || !isWaveformReady}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                previewUrl && isWaveformReady
+                                    ? "bg-[#E47640] text-white hover:bg-[#E47640]/90"
+                                    : "bg-[#3a3a3a] text-[#EFEDD7]/30 cursor-not-allowed"
+                            }`}
                         >
-                            <div className="text-4xl font-bold leading-tight text-center tracking-wider">
-                                GENE
-                                <br />
-                                RATE
-                            </div>
-                        </motion.button>
+                            {isPlaying ? (
+                                <Pause className="w-4 h-4" fill="currentColor" />
+                            ) : (
+                                <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                            )}
+                        </button>
+
+                        {/* Waveform */}
+                        <div className="flex-1 relative">
+                            <div ref={waveformRef} className="w-full" />
+                            {previewUrl && !isWaveformReady && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Loader2 className="w-5 h-5 text-[#E47640] animate-spin" />
+                                </div>
+                            )}
+                            {!previewUrl && (
+                                <div className="h-14 flex items-center justify-center text-[#EFEDD7]/30 text-sm">
+                                    Generated audio will appear here
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Time */}
+                        <div className="text-[#EFEDD7]/60 text-xs font-mono min-w-[80px] text-right">
+                            {previewUrl && isWaveformReady ? (
+                                `${formatTime(currentTime)} / ${formatTime(audioDuration)}`
+                            ) : (
+                                "0:00 / 0:00"
+                            )}
+                        </div>
+
+                        {/* Download */}
+                        <button
+                            onClick={handleSaveAudio}
+                            disabled={!previewUrl}
+                            className={`p-2 rounded-lg transition-colors ${
+                                previewUrl
+                                    ? "text-[#EFEDD7]/60 hover:text-[#EFEDD7] hover:bg-[#3a3a3a]"
+                                    : "text-[#EFEDD7]/20 cursor-not-allowed"
+                            }`}
+                            title="Download audio"
+                        >
+                            <Download className="w-5 h-5" />
+                        </button>
                     </div>
+
+                    {/* Error Message */}
+                    {job?.status === "failed" && (
+                        <div className="mt-3 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                            Error: {job.error_message || 'Generation failed. Please try again.'}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="flex w-full items-center justify-between mt-6">
-                {/* Mode Switch */}
-                <div className="flex items-center gap-3 bg-[#4A6456]/40 rounded-full p-1.5">
-                    <button
-                        onClick={() => setMode("designer")}
-                        className={`px-5 py-1.5 rounded-full font-semibold transition-all text-sm ${mode === "designer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199] hover:bg-[#3C5C4D]/30"
-                            }`}
-                    >
-                        Designer
-                    </button>
-                    <button
-                        disabled
-                        onClick={() => setMode("producer")}
-                        className={`px-5 py-1.5 rounded-full font-semibold transition-all text-sm ${mode === "producer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199]/40 hover:bg-[#3C5C4D]/30"
-                            }`}
-                    >
-                        Producer
-                    </button>
-                </div>
-                <div className="flex flex-row gap-2 text-sm">
-                    <p className="text-[#EFEDD7]/40">44.1kHz</p>
-                    <p className="text-[#133A28]/40">•</p>
-                    <p className="text-[#EFEDD7]/40">16-bit</p>
-                </div>
-
-                {/* Company Name (PROTOTIP inverted) */}
-                <div className="text-[#2A3E40] text-4xl font-extrabold tracking-wider" style={{ transform: "scaleX(-1)" }}>
-                    PROTOTIP
-                </div>
-            </div>
+            {/* Footer */}
+            <footer className="flex items-center justify-between px-5 py-2 border-t border-[#2a2a2a] text-xs text-[#EFEDD7]/30">
+                <span>Sound Designer Mode</span>
+                <span>44.1kHz • 16-bit</span>
+                <span>v0.1.0</span>
+            </footer>
         </div>
     )
 }

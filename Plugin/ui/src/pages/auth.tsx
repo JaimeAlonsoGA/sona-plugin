@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSignIn, useSignUp } from '../lib/hooks'
 import { ROUTES } from '../routes'
+import { Loader2 } from 'lucide-react'
 
 type AuthMode = 'login' | 'signup'
 
@@ -56,15 +57,12 @@ export default function AuthPage() {
   const canSubmit = email.trim() && password.trim() && passwordsMatch && !isLoading
 
   return (
-    <div className="page bg-[#467A5D] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#36795E] rounded-2xl p-6 shadow-xl">
+    <div className="page bg-[#1a1a1a] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
-          <span
-            className="text-[#F6E092] text-7xl font-bold tracking-wider">
-            SONA
-          </span>
-          <p className="text-[#EFEDD7]/60">
+          <span className="text-[#F6E092] text-4xl font-bold tracking-wide">SONA</span>
+          <p className="text-[#EFEDD7]/40 text-sm mt-2">
             {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
           </p>
         </div>
@@ -75,7 +73,7 @@ export default function AuthPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-[#EFEDD7] mb-2"
+              className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
             >
               Email
             </label>
@@ -85,7 +83,7 @@ export default function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-[#133A28] text-[#EFEDD7] border border-[#467A5D] rounded-lg px-4 py-3 focus:outline-none focus:border-[#F6E092] focus:ring-1 focus:ring-[#F6E092] transition-colors placeholder:text-[#EFEDD7]/40"
+              className="w-full bg-[#2a2a2a] text-[#EFEDD7] border border-[#3a3a3a] rounded-lg px-4 py-3 focus:outline-none focus:border-[#E47640]/50 transition-colors placeholder:text-[#EFEDD7]/30 text-sm"
               disabled={isLoading}
               autoComplete="email"
             />
@@ -95,7 +93,7 @@ export default function AuthPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-[#EFEDD7] mb-2"
+              className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
             >
               Password
             </label>
@@ -105,7 +103,7 @@ export default function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-[#133A28] text-[#EFEDD7] border border-[#467A5D] rounded-lg px-4 py-3 focus:outline-none focus:border-[#F6E092] focus:ring-1 focus:ring-[#F6E092] transition-colors placeholder:text-[#EFEDD7]/40"
+              className="w-full bg-[#2a2a2a] text-[#EFEDD7] border border-[#3a3a3a] rounded-lg px-4 py-3 focus:outline-none focus:border-[#E47640]/50 transition-colors placeholder:text-[#EFEDD7]/30 text-sm"
               disabled={isLoading}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
@@ -116,7 +114,7 @@ export default function AuthPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-[#EFEDD7] mb-2"
+                className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
               >
                 Confirm Password
               </label>
@@ -126,15 +124,16 @@ export default function AuthPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full bg-[#133A28] text-[#EFEDD7] border rounded-lg px-4 py-3 focus:outline-none focus:ring-1 transition-colors placeholder:text-[#EFEDD7]/40 ${confirmPassword && !passwordsMatch
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                    : 'border-[#467A5D] focus:border-[#F6E092] focus:ring-[#F6E092]'
-                  }`}
+                className={`w-full bg-[#2a2a2a] text-[#EFEDD7] border rounded-lg px-4 py-3 focus:outline-none transition-colors placeholder:text-[#EFEDD7]/30 text-sm ${
+                  confirmPassword && !passwordsMatch
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-[#3a3a3a] focus:border-[#E47640]/50'
+                }`}
                 disabled={isLoading}
                 autoComplete="new-password"
               />
               {confirmPassword && !passwordsMatch && (
-                <p className="mt-1 text-sm text-red-400">
+                <p className="mt-1.5 text-xs text-red-400">
                   Passwords do not match
                 </p>
               )}
@@ -143,14 +142,14 @@ export default function AuthPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 text-red-400 text-sm">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
               {error instanceof Error ? error.message : 'An error occurred'}
             </div>
           )}
 
           {/* Sign Up Success Message */}
           {mode === 'signup' && signUpMutation.isSuccess && !signUpMutation.data?.session && (
-            <div className="bg-green-900/20 border border-green-700 rounded-lg p-3 text-green-400 text-sm">
+            <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
               Check your email to confirm your account!
             </div>
           )}
@@ -159,29 +158,11 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full bg-[#E47640] hover:bg-[#E47640]/90 disabled:bg-[#6B7782] disabled:text-[#F8F2CF]/40 disabled:cursor-not-allowed text-[#EFEDD7] font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-[#E47640] hover:bg-[#E47640]/90 disabled:bg-[#3a3a3a] disabled:text-[#EFEDD7]/30 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
-                <svg
-                  className="animate-spin w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
+                <Loader2 className="w-4 h-4 animate-spin" />
                 {mode === 'login' ? 'Signing in...' : 'Creating account...'}
               </>
             ) : (
@@ -192,19 +173,24 @@ export default function AuthPage() {
 
         {/* Toggle Mode */}
         <div className="mt-6 text-center">
-          <p className="text-[#EFEDD7]/60 text-sm">
+          <p className="text-[#EFEDD7]/40 text-sm">
             {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
             {' '}
             <button
               type="button"
               onClick={toggleMode}
-              className="text-[#F6E092] hover:text-[#F6E092]/80 font-medium transition-colors"
+              className="text-[#E47640] hover:text-[#E47640]/80 font-medium transition-colors"
               disabled={isLoading}
             >
               {mode === 'login' ? 'Sign Up' : 'Sign In'}
             </button>
           </p>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[#EFEDD7]/20 text-xs mt-8">
+          by Prototip
+        </p>
       </div>
     </div>
   )
