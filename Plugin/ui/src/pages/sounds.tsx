@@ -104,8 +104,8 @@ export default function SoundsPage() {
     const { data: completedJobs, isLoading, isError, refetch, isFetching, completedCount } = useCompletedJobs()
 
     return (
-        <div className="min-h-screen bg-[#467A5D] p-4 md:p-6">
-            <div className="max-w-3xl mx-auto space-y-4">
+        <div className="page bg-[#467A5D] p-4 flex flex-col">
+            <div className="max-w-3xl mx-auto flex flex-col flex-1 gap-3 w-full overflow-hidden">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -164,7 +164,7 @@ export default function SoundsPage() {
 
                 {/* Sounds List */}
                 {!isLoading && !isError && (
-                    <div className="space-y-3 max-h-[70vh] overflow-y-auto pb-6">
+                    <div className="scrollable space-y-3 flex-1 pb-4">
                         {completedJobs && completedJobs.length === 0 ? (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}

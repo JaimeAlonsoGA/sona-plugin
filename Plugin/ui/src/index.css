@@ -8,16 +8,41 @@
   box-sizing: border-box;
 }
 
-body {
+:root {
+  /* Tamaño fijo del plugin - sincronizar con plugin-size.ts y PluginEditor.cpp */
+  --plugin-width: 800px;
+  --plugin-height: 600px;
+}
+
+html, body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0a0a0a;
   color: #ffffff;
   overflow: hidden;
+  width: var(--plugin-width);
+  height: var(--plugin-height);
 }
 
 #root {
-  width: 100vw;
-  height: 100vh;
+  width: var(--plugin-width);
+  height: var(--plugin-height);
+  overflow: hidden;
+}
+
+/* Clase base para todas las páginas - altura fija, sin scroll */
+.page {
+  width: 100%;
+  height: var(--plugin-height);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor scrolleable para listas o contenido largo DENTRO de una página */
+.scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* Importante para flex children */
 }
 
 /* Custom Scrollbar */

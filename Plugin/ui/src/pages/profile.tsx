@@ -34,8 +34,8 @@ export default function ProfilePage() {
     const tokensPercentage = (mockSubscription.tokensUsed / mockSubscription.tokensTotal) * 100
 
     return (
-        <div className="min-h-screen bg-[#467A5D] p-4 md:p-6 flex flex-col">
-            <div className="max-w-4xl mx-auto flex flex-col flex-1 gap-4 w-full">
+        <div className="page bg-[#467A5D] p-4 flex flex-col">
+            <div className="max-w-4xl mx-auto flex flex-col flex-1 gap-3 w-full overflow-hidden">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}

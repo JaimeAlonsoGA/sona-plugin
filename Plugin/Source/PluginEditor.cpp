@@ -1,10 +1,17 @@
 #include "PluginEditor.h"
 #include <juce_core/juce_core.h>
 
+// Constantes para el tamaño del plugin (fijo, no redimensionable)
+constexpr int PLUGIN_WIDTH = 800;
+constexpr int PLUGIN_HEIGHT = 600;
+
 SonaEditor::SonaEditor(SonaProcessor& p)
     : AudioProcessorEditor(&p), processorRef(p)
 {
     addAndMakeVisible(webView);
+    
+    // Plugin de tamaño fijo - no redimensionable
+    setResizable(false, false);
     
     // En modo desarrollo, cargar desde Vite dev server
     // En producción, cargar desde recursos embebidos via resource provider
@@ -16,7 +23,7 @@ SonaEditor::SonaEditor(SonaProcessor& p)
     webView.goToURL("http://sona.local/index.html");
 #endif
     
-    setSize(800, 600);
+    setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
 }
 
 SonaEditor::~SonaEditor()

@@ -56,8 +56,8 @@ export default function AuthPage() {
   const canSubmit = email.trim() && password.trim() && passwordsMatch && !isLoading
 
   return (
-    <div className="min-h-screen bg-[#467A5D] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-[#36795E] rounded-2xl p-8 shadow-xl">
+    <div className="page bg-[#467A5D] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-[#36795E] rounded-2xl p-6 shadow-xl">
         {/* Header */}
         <div className="text-center mb-8">
           <span

@@ -202,129 +202,128 @@ export default function SonaPage() {
     }
 
     return (
-        <div className="h-screen bg-[#467A5D] flex items-center justify-between p-8">
-            <div className="w-full">
-                <div className="flex flex-row items-center justify-between mb-12">
-                    {/* User & Tier */}
-                    <button onClick={() => navigate("/profile")} className="flex items-start gap-3 pl-2">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#692A12] to-[#E47640]" />
-                        {/* <span className="text-[#2A3E40] text-5xl font-bold tracking-tight">pro</span> */}
-                    </button>
+        <div className="page bg-[#467A5D] flex items-center justify-between p-6">
+            <div className="flex flex-row w-full items-center justify-between mb-8">
+                {/* User & Tier */}
+                <button onClick={() => navigate("/profile")} className="flex items-start gap-3 pl-2">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#692A12] to-[#E47640]" />
+                    {/* <span className="text-[#2A3E40] text-5xl font-bold tracking-tight">pro</span> */}
+                </button>
 
-                    <div>
-                        <AnimatePresence mode="wait">
-                            {state && (
-                                <motion.p
-                                    key={state}
-                                    initial={{ y: -20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: 10, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: "easeOut" }}
-                                    className="text-[#EFEDD7]/60 font-medium border rounded-lg px-2 py-1 text-center bg-[#133A28]/30 border-[#EFEDD7]/20"
-                                >
-                                    {state}
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Waveform & Controls - Audio Player */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={togglePlayPause}
-                            disabled={!previewUrl || !isWaveformReady}
-                            className={`hover:opacity-80 transition-opacity ${!previewUrl || !isWaveformReady ? 'opacity-40 cursor-not-allowed' : ''}`}
-                        >
-                            {isPlaying ? (
-                                <Pause className="text-[#692A12]" fill="#692A12" size={40} />
-                            ) : (
-                                <Play className="text-[#692A12]" fill="#692A12" size={40} />
-                            )}
-                        </button>
-                        {job?.status === "failed" && (
-                            <div className="text-red-400 font-medium">
-                                Error: {job.error_message || 'Unknown error'}
-                            </div>
+                <div>
+                    <AnimatePresence mode="wait">
+                        {state && (
+                            <motion.p
+                                key={state}
+                                initial={{ y: -20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 10, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                                className="text-[#EFEDD7]/60 font-medium border rounded-lg px-2 py-1 text-center bg-[#133A28]/30 border-[#EFEDD7]/20"
+                            >
+                                {state}
+                            </motion.p>
                         )}
-
-                        <div className="flex-1 rounded-md p-2 bg-[#4A6456]/40 relative min-w-[300px]">
-                            {/* WaveSurfer container */}
-                            <div
-                                ref={waveformRef}
-                                className={`w-full ${!previewUrl ? 'opacity-40' : ''}`}
-                            />
-                            {/* Loading indicator */}
-                            {previewUrl && !isWaveformReady && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-6 h-6 border-2 border-[#F6E092] border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            )}
-                            {/* Time display */}
-                            {previewUrl && isWaveformReady && (
-                                <div className="absolute bottom-0 right-2 text-[#F6E092]/80 text-xs font-mono z-10">
-                                    {formatTime(currentTime)} / {formatTime(audioDuration)}
-                                </div>
-                            )}
-                        </div>
-
-                        <button
-                            onClick={handleSaveAudio}
-                            disabled={!previewUrl}
-                            className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
-                            title="Save audio"
-                        >
-                            <Save size={32} strokeWidth={1.5} />
-                        </button>
-                        <button
-                            onClick={handleCopyAudio}
-                            disabled={!previewUrl}
-                            className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
-                            title="Copy audio to clipboard"
-                        >
-                            <Copy size={32} strokeWidth={1.5} />
-                        </button>
-                    </div>
+                    </AnimatePresence>
                 </div>
 
-                <div className="flex items-center justify-center gap-16">
-                    {/* Plugin Name (SONA) */}
-                    <div className="flex flex-col items-center">
-                        <span
-                            className="text-[#F6E092] text-7xl font-bold tracking-wider"
-                            style={{ writingMode: "vertical-lr", textOrientation: "sideways" }}
-                        >
-                            SONA
-                        </span>
+                {/* Waveform & Controls - Audio Player */}
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={togglePlayPause}
+                        disabled={!previewUrl || !isWaveformReady}
+                        className={`hover:opacity-80 transition-opacity ${!previewUrl || !isWaveformReady ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    >
+                        {isPlaying ? (
+                            <Pause className="text-[#692A12]" fill="#692A12" size={40} />
+                        ) : (
+                            <Play className="text-[#692A12]" fill="#692A12" size={40} />
+                        )}
+                    </button>
+                    {job?.status === "failed" && (
+                        <div className="text-red-400 font-medium">
+                            Error: {job.error_message || 'Unknown error'}
+                        </div>
+                    )}
+
+                    <div className="flex-1 rounded-md p-2 bg-[#4A6456]/40 relative min-w-[300px]">
+                        {/* WaveSurfer container */}
+                        <div
+                            ref={waveformRef}
+                            className={`w-full ${!previewUrl ? 'opacity-40' : ''}`}
+                        />
+                        {/* Loading indicator */}
+                        {previewUrl && !isWaveformReady && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-[#F6E092] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        )}
+                        {/* Time display */}
+                        {previewUrl && isWaveformReady && (
+                            <div className="absolute bottom-0 right-2 text-[#F6E092]/80 text-xs font-mono z-10">
+                                {formatTime(currentTime)} / {formatTime(audioDuration)}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex flex-row w-full items-center justify-between">
-                        {/* Circular Prompt Input / Settings Panel */}
-                        <div className="relative flex items-center justify-center">
-                            <motion.div 
-                                className="absolute w-64 h-64 bg-[#133A28] rounded-full mr-2 z-10"
-                                animate={{
-                                    boxShadow: quality === "creator" 
-                                        ? "-10px 0px 20px 5px rgba(246, 224, 146, 0.4)" 
-                                        : "none"
-                                }}
-                                transition={{ duration: 0.5 }}
-                            />
-                            <motion.div 
-                                className="z-20 w-60 h-60 rounded-full bg-[#36795E] flex items-center justify-center overflow-hidden"
-                                animate={isGenerating ? { scale: [1, 1.02, 1] } : { scale: 1 }}
-                                transition={isGenerating ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
-                            >
-                                <AnimatePresence mode="wait">
-                                    {isEditing ? (
-                                        // Settings Panel
-                                        <motion.div 
-                                            key="settings"
-                                            initial={{ opacity: 0, rotateY: 90 }}
-                                            animate={{ opacity: 1, rotateY: 0 }}
-                                            exit={{ opacity: 0, rotateY: -90 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="flex flex-col items-center justify-center gap-4 p-4 w-full"
-                                        >
+                    <button
+                        onClick={handleSaveAudio}
+                        disabled={!previewUrl}
+                        className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        title="Save audio"
+                    >
+                        <Save size={32} strokeWidth={1.5} />
+                    </button>
+                    <button
+                        onClick={handleCopyAudio}
+                        disabled={!previewUrl}
+                        className={`text-[#133A28] hover:opacity-70 transition-opacity ${!previewUrl ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        title="Copy audio to clipboard"
+                    >
+                        <Copy size={32} strokeWidth={1.5} />
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-center w-full gap-10">
+                {/* Plugin Name (SONA) */}
+                <div className="flex flex-col items-center">
+                    <span
+                        className="text-[#F6E092] text-6xl font-bold tracking-wider"
+                        style={{ writingMode: "vertical-lr", textOrientation: "sideways" }}
+                    >
+                        SONA
+                    </span>
+                </div>
+
+                <div className="flex flex-row w-full items-center justify-between">
+                    {/* Circular Prompt Input / Settings Panel */}
+                    <div className="relative flex items-center justify-center">
+                        <motion.div
+                            className="absolute w-56 h-56 bg-[#133A28] rounded-full mr-2 z-10"
+                            animate={{
+                                boxShadow: quality === "creator"
+                                    ? "-10px 0px 20px 5px rgba(246, 224, 146, 0.4)"
+                                    : "none"
+                            }}
+                            transition={{ duration: 0.5 }}
+                        />
+                        <motion.div
+                            className="z-20 w-52 h-52 rounded-full bg-[#36795E] flex items-center justify-center overflow-hidden"
+                            animate={isGenerating ? { scale: [1, 1.02, 1] } : { scale: 1 }}
+                            transition={isGenerating ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+                        >
+                            <AnimatePresence mode="wait">
+                                {isEditing ? (
+                                    // Settings Panel
+                                    <motion.div
+                                        key="settings"
+                                        initial={{ opacity: 0, rotateY: 90 }}
+                                        animate={{ opacity: 1, rotateY: 0 }}
+                                        exit={{ opacity: 0, rotateY: -90 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="flex flex-col items-center justify-center gap-4 p-4 w-full"
+                                    >
                                         {/* Duration Setting */}
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="flex items-center gap-2 text-[#EFEDD7]">
@@ -379,100 +378,99 @@ export default function SonaPage() {
                                         <div className="text-[#EFEDD7]/60 text-xs text-center mt-1">
                                             {duration}s • {quality === "creator" ? "High" : "Medium"} quality
                                         </div>
-                                        </motion.div>
-                                    ) : (
-                                        // Prompt Input
-                                        <motion.textarea
-                                            key="prompt"
-                                            initial={{ opacity: 0, rotateY: -90 }}
-                                            animate={{ opacity: 1, rotateY: 0 }}
-                                            exit={{ opacity: 0, rotateY: 90 }}
-                                            transition={{ duration: 0.3 }}
-                                            value={prompt}
-                                            disabled={isGenerating}
-                                            onChange={(e) => setPrompt(e.target.value)}
-                                            placeholder="Write your prompt here..."
-                                            className="overflow-y-hidden p-8 bg-transparent text-[#EFEDD7] placeholder:text-[#EFEDD7]/60 resize-none outline-none font-bold leading-relaxed text-2xl text-pretty"
-                                        />
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        </div>
+                                    </motion.div>
+                                ) : (
+                                    // Prompt Input
+                                    <motion.textarea
+                                        key="prompt"
+                                        initial={{ opacity: 0, rotateY: -90 }}
+                                        animate={{ opacity: 1, rotateY: 0 }}
+                                        exit={{ opacity: 0, rotateY: 90 }}
+                                        transition={{ duration: 0.3 }}
+                                        value={prompt}
+                                        disabled={isGenerating}
+                                        onChange={(e) => setPrompt(e.target.value)}
+                                        placeholder="Write your prompt here..."
+                                        className="overflow-y-hidden p-8 bg-transparent text-[#EFEDD7] placeholder:text-[#EFEDD7]/60 resize-none outline-none font-bold leading-relaxed text-2xl text-pretty"
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    </div>
 
+                    <motion.button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`w-8 h-8 rounded-full transition-all duration-300 flex items-center justify-center ${isEditing
+                            ? "bg-[#E47640]/80"
+                            : "bg-[#574a64]"
+                            }`}
+                        animate={{ rotate: isEditing ? 0 : 180 }}
+                        transition={{ duration: 0.3 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        title={isEditing ? "Back to prompt" : "Settings"}
+                    >
+                        <Bolt className="text-[#F8F2CF]/60 hover:opacity-70 transition-opacity" size={20} />
+                    </motion.button>
+
+                    {/* Generate Button */}
+                    <div className="relative ml-8">
                         <motion.button
-                            onClick={() => setIsEditing(!isEditing)}
-                            className={`w-8 h-8 rounded-full transition-all duration-300 flex items-center justify-center ${isEditing
-                                ? "bg-[#E47640]/80"
-                                : "bg-[#574a64]"
-                                }`}
-                            animate={{ rotate: isEditing ? 0 : 180 }}
-                            transition={{ duration: 0.3 }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            title={isEditing ? "Back to prompt" : "Settings"}
+                            disabled={!prompt || isGenerating}
+                            onClick={handleSubmit}
+                            className={`${prompt && !isGenerating ? "bg-[#E47640] text-[#F8F2CF]" : "bg-[#6B7782] text-[#F8F2CF]/40 cursor-not-allowed"} w-52 h-52 rounded-3xl flex items-center justify-center`}
+                            whileHover={prompt && !isGenerating ? { scale: 1.05 } : {}}
+                            whileTap={prompt && !isGenerating ? { scale: 0.98 } : {}}
+                            animate={isGenerating ? {
+                                scale: [1, 1.02, 1],
+                                opacity: [1, 0.8, 1]
+                            } : {}}
+                            transition={isGenerating ? {
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            } : { duration: 0.2 }}
                         >
-                            <Bolt className="text-[#F8F2CF]/60 hover:opacity-70 transition-opacity" size={20} />
+                            <div className="text-4xl font-bold leading-tight text-center tracking-wider">
+                                GENE
+                                <br />
+                                RATE
+                            </div>
                         </motion.button>
-
-                        {/* Generate Button */}
-                        <div className="relative ml-10">
-                            <motion.button 
-                                disabled={!prompt || isGenerating} 
-                                onClick={handleSubmit} 
-                                className={`${prompt && !isGenerating ? "bg-[#E47640] text-[#F8F2CF]" : "bg-[#6B7782] text-[#F8F2CF]/40 cursor-not-allowed"} w-60 h-60 rounded-3xl flex items-center justify-center`}
-                                whileHover={prompt && !isGenerating ? { scale: 1.05 } : {}}
-                                whileTap={prompt && !isGenerating ? { scale: 0.98 } : {}}
-                                animate={isGenerating ? { 
-                                    scale: [1, 1.02, 1],
-                                    opacity: [1, 0.8, 1]
-                                } : {}}
-                                transition={isGenerating ? { 
-                                    duration: 1.5, 
-                                    repeat: Infinity, 
-                                    ease: "easeInOut" 
-                                } : { duration: 0.2 }}
-                            >
-                                <div className="text-5xl font-bold leading-tight text-center tracking-wider">
-                                    GENE
-                                    <br />
-                                    RATE
-                                </div>
-                            </motion.button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center justify-between mt-16">
-                    {/* Mode Switch */}
-                    <div className="flex items-center gap-4 bg-[#4A6456]/40 rounded-full p-2">
-                        <button
-                            onClick={() => setMode("designer")}
-                            className={`px-6 py-2 rounded-full font-semibold transition-all ${mode === "designer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199] hover:bg-[#3C5C4D]/30"
-                                }`}
-                        >
-                            Designer
-                        </button>
-                        <button
-                            disabled
-                            onClick={() => setMode("producer")}
-                            className={`px-6 py-2 rounded-full font-semibold transition-all ${mode === "producer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199]/40 hover:bg-[#3C5C4D]/30"
-                                }`}
-                        >
-                            Producer
-                        </button>
-                    </div>
-                    <div className="flex flex-row gap-2">
-                        <p className="text-[#EFEDD7]/40">44.1kHz</p>
-                        <p className="text-[#133A28]/40">•</p>
-                        <p className="text-[#EFEDD7]/40">16-bit</p>
-                    </div>
-
-                    {/* Company Name (PROTOTIP inverted) */}
-                    <div className="text-[#2A3E40] text-5xl font-extrabold tracking-wider" style={{ transform: "scaleX(-1)" }}>
-                        PROTOTIP
                     </div>
                 </div>
             </div>
-        </div >
+
+            <div className="flex w-full items-center justify-between mt-6">
+                {/* Mode Switch */}
+                <div className="flex items-center gap-3 bg-[#4A6456]/40 rounded-full p-1.5">
+                    <button
+                        onClick={() => setMode("designer")}
+                        className={`px-5 py-1.5 rounded-full font-semibold transition-all text-sm ${mode === "designer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199] hover:bg-[#3C5C4D]/30"
+                            }`}
+                    >
+                        Designer
+                    </button>
+                    <button
+                        disabled
+                        onClick={() => setMode("producer")}
+                        className={`px-5 py-1.5 rounded-full font-semibold transition-all text-sm ${mode === "producer" ? "bg-[#E8D199] text-[#3C5C4D]" : "text-[#E8D199]/40 hover:bg-[#3C5C4D]/30"
+                            }`}
+                    >
+                        Producer
+                    </button>
+                </div>
+                <div className="flex flex-row gap-2 text-sm">
+                    <p className="text-[#EFEDD7]/40">44.1kHz</p>
+                    <p className="text-[#133A28]/40">•</p>
+                    <p className="text-[#EFEDD7]/40">16-bit</p>
+                </div>
+
+                {/* Company Name (PROTOTIP inverted) */}
+                <div className="text-[#2A3E40] text-4xl font-extrabold tracking-wider" style={{ transform: "scaleX(-1)" }}>
+                    PROTOTIP
+                </div>
+            </div>
+        </div>
     )
 }
