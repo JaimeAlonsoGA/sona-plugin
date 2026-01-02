@@ -1,14 +1,15 @@
 /**
  * Authentication Page
  * 
- * Provides login and sign up functionality with form validation.
+ * Welcoming, trustworthy sign in/sign up flow
  */
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useSignIn, useSignUp } from '../lib/hooks'
 import { ROUTES } from '../routes'
-import { Loader2 } from 'lucide-react'
+import { SonaLogo, Button } from '../components/shared'
 
 type AuthMode = 'login' | 'signup'
 
@@ -30,14 +31,10 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!email.trim() || !password.trim()) {
-      return
-    }
+    if (!email.trim() || !password.trim()) return
 
     if (mode === 'signup') {
-      if (password !== confirmPassword) {
-        return
-      }
+      if (password !== confirmPassword) return
       signUpMutation.mutate({ email: email.trim(), password })
     } else {
       signInMutation.mutate({ email: email.trim(), password })
@@ -57,24 +54,30 @@ export default function AuthPage() {
   const canSubmit = email.trim() && password.trim() && passwordsMatch && !isLoading
 
   return (
-    <div className="page bg-[#1a1a1a] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <span className="text-[#F6E092] text-4xl font-bold tracking-wide">SONA</span>
-          <p className="text-[#EFEDD7]/40 text-sm mt-2">
-            {mode === 'login' ? 'Sign in to your account' : 'Create a new account'}
-          </p>
+    <div className="page flex items-center justify-center p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-xs"
+      >
+        {/* Logo */}
+        <div className="text-center mb-12">
+          <SonaLogo size="xl" />
+          <motion.p 
+            key={mode}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-[var(--sona-text-muted)] text-sm mt-6"
+          >
+            {mode === 'login' ? 'Welcome back' : 'Begin your journey'}
+          </motion.p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
-            >
+            <label htmlFor="email" className="sona-label block mb-2">
               Email
             </label>
             <input
@@ -83,7 +86,7 @@ export default function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-[#2a2a2a] text-[#EFEDD7] border border-[#3a3a3a] rounded-lg px-4 py-3 focus:outline-none focus:border-[#E47640]/50 transition-colors placeholder:text-[#EFEDD7]/30 text-sm"
+              className="sona-input"
               disabled={isLoading}
               autoComplete="email"
             />
@@ -91,10 +94,7 @@ export default function AuthPage() {
 
           {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
-            >
+            <label htmlFor="password" className="sona-label block mb-2">
               Password
             </label>
             <input
@@ -103,83 +103,95 @@ export default function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-[#2a2a2a] text-[#EFEDD7] border border-[#3a3a3a] rounded-lg px-4 py-3 focus:outline-none focus:border-[#E47640]/50 transition-colors placeholder:text-[#EFEDD7]/30 text-sm"
+              className="sona-input"
               disabled={isLoading}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             />
           </div>
 
-          {/* Confirm Password (Sign up only) */}
-          {mode === 'signup' && (
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-xs font-medium text-[#EFEDD7]/60 mb-2 uppercase tracking-wider"
+          {/* Confirm Password */}
+          <AnimatePresence mode="wait">
+            {mode === 'signup' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
               >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className={`w-full bg-[#2a2a2a] text-[#EFEDD7] border rounded-lg px-4 py-3 focus:outline-none transition-colors placeholder:text-[#EFEDD7]/30 text-sm ${
-                  confirmPassword && !passwordsMatch
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-[#3a3a3a] focus:border-[#E47640]/50'
-                }`}
-                disabled={isLoading}
-                autoComplete="new-password"
-              />
-              {confirmPassword && !passwordsMatch && (
-                <p className="mt-1.5 text-xs text-red-400">
-                  Passwords do not match
-                </p>
-              )}
-            </div>
-          )}
+                <label htmlFor="confirmPassword" className="sona-label block mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={`sona-input ${
+                    confirmPassword && !passwordsMatch
+                      ? 'border-[var(--sona-ember)]'
+                      : ''
+                  }`}
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                />
+                {confirmPassword && !passwordsMatch && (
+                  <p className="mt-2 text-xs text-[var(--sona-ember)]">
+                    Passwords do not match
+                  </p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Error Message */}
-          {error && (
-            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">
-              {error instanceof Error ? error.message : 'An error occurred'}
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="p-3 bg-[var(--sona-ember)]/10 border border-[var(--sona-ember)]/20 rounded-2xl text-[var(--sona-ember)] text-sm"
+              >
+                {error instanceof Error ? error.message : 'An error occurred'}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Sign Up Success Message */}
-          {mode === 'signup' && signUpMutation.isSuccess && !signUpMutation.data?.session && (
-            <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm">
-              Check your email to confirm your account!
-            </div>
-          )}
+          {/* Success Message */}
+          <AnimatePresence>
+            {mode === 'signup' && signUpMutation.isSuccess && !signUpMutation.data?.session && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="p-3 bg-[var(--sona-sage)]/10 border border-[var(--sona-sage)]/20 rounded-2xl text-[var(--sona-sage)] text-sm"
+              >
+                Check your email to confirm your account
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
             disabled={!canSubmit}
-            className="w-full bg-[#E47640] hover:bg-[#E47640]/90 disabled:bg-[#3a3a3a] disabled:text-[#EFEDD7]/30 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            loading={isLoading}
+            className="w-full"
+            size="lg"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {mode === 'login' ? 'Signing in...' : 'Creating account...'}
-              </>
-            ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
-            )}
-          </button>
+            {mode === 'login' ? 'Sign In' : 'Create Account'}
+          </Button>
         </form>
 
         {/* Toggle Mode */}
-        <div className="mt-6 text-center">
-          <p className="text-[#EFEDD7]/40 text-sm">
+        <div className="mt-10 text-center">
+          <p className="text-[var(--sona-text-muted)] text-sm">
             {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
             {' '}
             <button
               type="button"
               onClick={toggleMode}
-              className="text-[#E47640] hover:text-[#E47640]/80 font-medium transition-colors"
+              className="text-[var(--sona-sage)] hover:text-[var(--sona-gold)] font-medium transition-colors"
               disabled={isLoading}
             >
               {mode === 'login' ? 'Sign Up' : 'Sign In'}
@@ -188,10 +200,10 @@ export default function AuthPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[#EFEDD7]/20 text-xs mt-8">
-          by Prototip
+        <p className="text-center text-[var(--sona-text-subtle)] text-[10px] tracking-widest mt-12">
+          by prototip
         </p>
-      </div>
+      </motion.div>
     </div>
   )
 }

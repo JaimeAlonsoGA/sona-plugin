@@ -126,18 +126,30 @@ export class SupabaseService {
   async updateJobResult(
     jobId: string,
     masterPath: string,
-    previewPath: string
+    previewPath: string,
+    enhancedPrompt?: string,
+    filename?: string
   ): Promise<boolean> {
     try {
+      const updateData: Record<string, unknown> = {
+        master_path: masterPath,
+        preview_path: previewPath,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add enhanced prompt and filename if provided
+      if (enhancedPrompt) {
+        updateData.enhanced_prompt = enhancedPrompt;
+      }
+      if (filename) {
+        updateData.filename = filename;
+      }
+
       const { error } = await this.client
         .from('jobs')
-        .update({
-          master_path: masterPath,
-          preview_path: previewPath,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', jobId);
 
       if (error) {
@@ -145,7 +157,9 @@ export class SupabaseService {
         return false;
       }
 
-      logger.info(`Job ${jobId} completed with master and preview paths`);
+      logger.info(`Job ${jobId} completed with master and preview paths`, {
+        filename: filename || 'not provided',
+      });
       return true;
     } catch (error) {
       logger.error('Error updating job result:', error);

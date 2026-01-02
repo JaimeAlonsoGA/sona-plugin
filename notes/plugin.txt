@@ -1,5 +1,39 @@
-Plugin functionality:
+Ideas
+
+Añade modificadores de audio: Ganancia, revertir, velocidad.
+Añadir un eq paramétrico.
+Poder exportar secciones del audio, como en soundly.
 
 
-Text field to write prompts
-generate button
+<BETA>Añadir consejos de prompting
+Explicar claramente que todos los sonidos que generas son TUYOS 100%
+Explicar también Stable Audio, como está entranado el LM y tratar de ser transparente.
+
+
+<BETA>Añadir parámetros default para mejorar el prompting (sfx, loop, lead...)
+Crear prompting asistido estabilizar y mejorar resultados: da caracter a SONA y fiabilidad.
+Opción de controlar caracter de SONA. (ej.: creativa, inspirada, retro)
+
+
+<BETA>Elegir tonalidad.
+Dos opciones: 
+Diseñador, puedes seleccionar duración en segundos
+productor, puedes seleccionar duración en número de compases basado en el compás y tempo de la canción. Opción bpm sync.
+
+
+Closed Beta:
+Limitar número de generaciones. Asumir gastos 5$/tester. 
+Implementar opción de comprar más. Subscripcion feature not implemented yet.
+Crear formulario para recaudar información y feedback. 
+
+
+<BETA>Ajuste de nombrar samples. Usando la convención de diseño UCS, jerárquica, usando custom naming.
+Llamar API paralela de Text To Text en audio-worker para generar nombre basado en prompt del usuario y modo de naming seleccionado. 
+Prompt: 
+Implementa la opción en profile de elegir que naming quiere para sus sonidos. Si usando UCS (CatID_FXName_CreatorID_SourceID), naming jerárquico (Se organiza el nombre para que los archivos se agrupen lógicamente al ordenarlos alfabéticamente.
+Formato común: [Categoría]_[Objeto]_[Acción]_[Variación]) o musical, custom naming (opción de personalizar orden de los parámetros basado en parámetros predeterminados como [Categoría][Objeto][Acción][Variación] o custom params que pueda crear el usuario.  
+
+
+<BETA>Audio to Audio prompting.
+
+<BETA>

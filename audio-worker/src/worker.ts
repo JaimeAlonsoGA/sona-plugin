@@ -9,6 +9,7 @@ import { SupabaseService } from './supabase.js';
 import { StableAudioClient } from './stable-audio.js';
 import { TestAudioClient } from './test-audio.js';
 import { AudioProcessor } from './audio-processor.js';
+import { PromptEnhancerService } from './prompt-enhancer.js';
 
 export class AudioWorker {
   private config: WorkerConfig;
@@ -16,6 +17,7 @@ export class AudioWorker {
   private stableAudio: StableAudioClient;
   private testAudio: TestAudioClient;
   private audioProcessor: AudioProcessor;
+  private promptEnhancer: PromptEnhancerService;
   private isRunning: boolean = false;
   private limit: ReturnType<typeof pLimit>;
 
@@ -25,6 +27,7 @@ export class AudioWorker {
     this.stableAudio = new StableAudioClient(config);
     this.testAudio = new TestAudioClient();
     this.audioProcessor = new AudioProcessor();
+    this.promptEnhancer = new PromptEnhancerService(config);
     this.limit = pLimit(config.maxConcurrentJobs);
     
     logger.setLevel(config.logLevel);
@@ -118,10 +121,22 @@ export class AudioWorker {
     });
 
     try {
-      // Generate audio using Stable Audio API or test audio client
+      // Step 1: Enhance the prompt with OpenAI
+      const enhancedData = await this.promptEnhancer.enhancePrompt(job.prompt, {
+        duration: job.duration,
+        quality: job.quality,
+      });
+
+      logger.info(`Prompt enhanced for job ${job.id}`, {
+        filename: enhancedData.filename,
+        category: enhancedData.ucsCategory,
+        enhancedPromptPreview: enhancedData.enhancedPrompt.substring(0, 100) + '...',
+      });
+
+      // Step 2: Generate audio using the enhanced prompt
       const audioClient = this.config.useTestAudio ? this.testAudio : this.stableAudio;
       const audioResponse = await audioClient.generateAudio({
-        prompt: job.prompt,
+        prompt: enhancedData.enhancedPrompt, // Use enhanced prompt!
         duration: job.duration,
         quality: job.quality,
       });
@@ -160,11 +175,13 @@ export class AudioWorker {
         throw new Error(result.error || 'Failed to upload audio files');
       }
 
-      // Update job with results (paths, not URLs)
+      // Update job with results (paths, enhanced prompt, and filename)
       const updated = await this.supabase.updateJobResult(
         job.id,
         result.masterPath!,
-        result.previewPath!
+        result.previewPath!,
+        enhancedData.enhancedPrompt,
+        enhancedData.filename
       );
 
       if (!updated) {
@@ -175,6 +192,7 @@ export class AudioWorker {
       logger.info(`Job ${job.id} completed successfully in ${duration}ms`, {
         masterPath: result.masterPath,
         previewPath: result.previewPath,
+        filename: enhancedData.filename,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

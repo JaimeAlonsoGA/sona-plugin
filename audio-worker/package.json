@@ -22,7 +22,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "dotenv": "^16.3.1",
-    "p-limit": "^5.0.0"
+    "openai": "^6.15.0",
+    "p-limit": "^5.0.0",
+    "zod": "^4.3.4"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

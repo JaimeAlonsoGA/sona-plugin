@@ -1,3 +1,10 @@
+/* 
+ * Sona Design System
+ * 
+ * Feminine · Creative · Spiritual · Minimal
+ * A warm, nurturing space for sound creation
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,84 +16,474 @@
 }
 
 :root {
-  /* Tamaño fijo del plugin - sincronizar con plugin-size.ts y PluginEditor.cpp */
+  /* Plugin dimensions */
   --plugin-width: 800px;
   --plugin-height: 600px;
   
-  /* Color palette */
-  --color-bg: #1a1a1a;
-  --color-surface: #2a2a2a;
-  --color-border: #3a3a3a;
-  --color-primary: #E47640;
-  --color-accent: #F6E092;
-  --color-green: #467A5D;
-  --color-text: #EFEDD7;
+  /* Sona Color Palette - Soft, warm, nurturing */
+  --sona-void: #0a0a0a;
+  --sona-deep: #111111;
+  --sona-surface: #161616;
+  --sona-elevated: #1c1c1c;
+  --sona-border: #252525;
+  --sona-muted: #333333;
+  
+  /* Primary - Warm terracotta, feminine warmth */
+  --sona-ember: #D4856A;
+  --sona-ember-glow: rgba(212, 133, 106, 0.12);
+  --sona-ember-soft: rgba(212, 133, 106, 0.08);
+  
+  /* Secondary - Soft gold, creative spark */
+  --sona-gold: #E8D5A3;
+  --sona-gold-glow: rgba(232, 213, 163, 0.15);
+  
+  /* Accent - Sage green, growth and fertility */
+  --sona-sage: #7BA38E;
+  --sona-sage-soft: rgba(123, 163, 142, 0.12);
+  
+  /* Text - Warm cream */
+  --sona-cream: #F5F2E8;
+  --sona-text: var(--sona-cream);
+  --sona-text-muted: rgba(245, 242, 232, 0.55);
+  --sona-text-subtle: rgba(245, 242, 232, 0.35);
+  
+  /* Gradients - Organic, flowing */
+  --gradient-warm: linear-gradient(135deg, var(--sona-ember) 0%, #B86E55 100%);
+  --gradient-creative: linear-gradient(135deg, var(--sona-gold) 0%, var(--sona-ember) 100%);
+  --gradient-ambient: radial-gradient(ellipse at 50% 0%, var(--sona-ember-glow) 0%, transparent 50%);
+  
+  /* Animation - Gentle, organic */
+  --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-breath: cubic-bezier(0.37, 0, 0.63, 1);
 }
 
 html, body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--sona-void);
+  color: var(--sona-text);
   overflow: hidden;
   width: var(--plugin-width);
   height: var(--plugin-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
 #root {
   width: var(--plugin-width);
   height: var(--plugin-height);
   overflow: hidden;
+  background: var(--sona-void);
 }
 
-/* Clase base para todas las páginas - altura fija, sin scroll */
+/* Page base - clean, minimal */
 .page {
   width: 100%;
   height: var(--plugin-height);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--sona-void);
+  position: relative;
 }
 
-/* Contenedor scrolleable para listas o contenido largo DENTRO de una página */
+/* Subtle ambient glow - quasiespiritual touch */
+.page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140%;
+  height: 300px;
+  background: var(--gradient-ambient);
+  pointer-events: none;
+  opacity: 1;
+  z-index: 0;
+}
+
+.page > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollable containers */
 .scrollable {
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
 }
 
-/* Custom Scrollbar - Dark theme */
+/* Custom Scrollbar - Minimal */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
+  background: var(--sona-border);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a4a4a;
+  background: var(--sona-muted);
 }
 
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Focus styles */
+/* Focus styles - Soft glow */
 *:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sona-ember-glow);
 }
 
-/* Text truncation helper */
+/* Text utilities */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ============================================
+   Sona Component Classes
+   ============================================ */
+
+/* Soft card - Primary container */
+.sona-card {
+  background: var(--sona-surface);
+  border: 1px solid var(--sona-border);
+  border-radius: 16px;
+  transition: all 0.3s var(--ease-gentle);
+}
+
+.sona-card:hover {
+  border-color: var(--sona-muted);
+}
+
+/* Glass card - For special elements */
+.sona-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(28, 28, 28, 0.9) 0%,
+    rgba(22, 22, 22, 0.95) 100%
+  );
+  border: 1px solid var(--sona-border);
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+}
+
+/* Primary button - Warm, confident, inviting */
+.sona-btn-primary {
+  background: var(--sona-ember);
+  color: var(--sona-cream);
+  font-weight: 500;
+  padding: 0.875rem 1.75rem;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-gentle);
+  letter-spacing: 0.02em;
+}
+
+.sona-btn-primary:hover {
+  background: var(--sona-gold);
+  color: var(--sona-void);
+  box-shadow: 0 8px 32px var(--sona-gold-glow);
+}
+
+.sona-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.sona-btn-primary:disabled {
+  background: var(--sona-muted);
+  color: var(--sona-text-subtle);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Secondary button - Subtle, trustworthy */
+.sona-btn-secondary {
+  background: var(--sona-surface);
+  color: var(--sona-text);
+  font-weight: 500;
+  padding: 0.875rem 1.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--sona-border);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-gentle);
+}
+
+.sona-btn-secondary:hover {
+  background: var(--sona-elevated);
+  border-color: var(--sona-muted);
+}
+
+/* Ghost button - Minimal, close */
+.sona-btn-ghost {
+  background: transparent;
+  color: var(--sona-text-muted);
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-gentle);
+}
+
+.sona-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--sona-text);
+}
+
+/* Input fields - Clean, reliable */
+.sona-input {
+  width: 100%;
+  background: var(--sona-surface);
+  color: var(--sona-text);
+  border: 1px solid var(--sona-border);
+  border-radius: 14px;
+  padding: 0.875rem 1.125rem;
+  font-size: 0.875rem;
+  transition: all 0.3s var(--ease-gentle);
+}
+
+.sona-input::placeholder {
+  color: var(--sona-text-subtle);
+}
+
+.sona-input:hover {
+  border-color: var(--sona-muted);
+}
+
+.sona-input:focus {
+  outline: none;
+  border-color: var(--sona-sage);
+  box-shadow: 0 0 0 3px rgba(123, 163, 142, 0.15);
+}
+
+.sona-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Textarea - For creative expression */
+.sona-textarea {
+  width: 100%;
+  background: var(--sona-surface);
+  color: var(--sona-text);
+  border: 1px solid var(--sona-border);
+  border-radius: 18px;
+  padding: 1.125rem 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  resize: none;
+  transition: all 0.3s var(--ease-gentle);
+}
+
+.sona-textarea::placeholder {
+  color: var(--sona-text-subtle);
+}
+
+.sona-textarea:hover {
+  border-color: var(--sona-muted);
+}
+
+.sona-textarea:focus {
+  outline: none;
+  border-color: var(--sona-sage);
+  box-shadow: 0 0 0 4px rgba(123, 163, 142, 0.1);
+}
+
+/* Chip/Badge - Soft, approachable */
+.sona-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--sona-surface);
+  border: 1px solid var(--sona-border);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sona-text-muted);
+  transition: all 0.25s var(--ease-gentle);
+}
+
+.sona-chip:hover {
+  background: var(--sona-elevated);
+}
+
+.sona-chip.active {
+  background: rgba(123, 163, 142, 0.15);
+  border-color: var(--sona-sage);
+  color: var(--sona-sage);
+}
+
+.sona-chip.ember {
+  background: rgba(212, 133, 106, 0.1);
+  border-color: rgba(212, 133, 106, 0.3);
+  color: var(--sona-ember);
+}
+
+/* Toggle group - Minimal selection */
+.sona-toggle-group {
+  display: flex;
+  background: var(--sona-surface);
+  border: 1px solid var(--sona-border);
+  border-radius: 12px;
+  padding: 0.25rem;
+  gap: 0.125rem;
+}
+
+.sona-toggle-item {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sona-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-gentle);
+}
+
+.sona-toggle-item:hover:not(.active) {
+  color: var(--sona-text);
+}
+
+.sona-toggle-item.active {
+  background: var(--sona-sage);
+  color: var(--sona-cream);
+}
+
+/* ============================================
+   Sona Animations - Organic, flowing
+   ============================================ */
+
+@keyframes sona-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes sona-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.01);
+    opacity: 0.85;
+  }
+}
+
+@keyframes sona-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sona-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-pulse-slow {
+  animation: sona-pulse 4s var(--ease-in-out-sine) infinite;
+}
+
+.animate-breathe {
+  animation: sona-breathe 5s var(--ease-in-out-sine) infinite;
+}
+
+.animate-flow {
+  animation: sona-flow 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* ============================================
+   Waveform - Visualizing creativity
+   ============================================ */
+
+.sona-waveform {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* ============================================
+   Typography - Clear, confident voice
+   ============================================ */
+
+.sona-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--sona-text);
+}
+
+.sona-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sona-text-subtle);
+}
+
+/* ============================================
+   Sona Brand Identity
+   ============================================ */
+
+.sona-logo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--sona-gold);
+}
+
+/* Subtle accent line */
+.sona-accent-line {
+  height: 2px;
+  background: linear-gradient(90deg, var(--sona-sage), transparent);
+  border-radius: 1px;
+}
+
+/* ============================================
+   Utility classes
+   ============================================ */
+
+.sona-fade-edges::before,
+.sona-fade-edges::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sona-fade-edges::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--sona-surface), transparent);
+}
+
+.sona-fade-edges::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--sona-surface), transparent);
 }

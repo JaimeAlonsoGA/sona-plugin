@@ -25,6 +25,7 @@ export function loadConfig(): WorkerConfig {
     maxRetries: parseInt(getEnv('MAX_RETRIES', '3'), 10),
     retryDelayMs: parseInt(getEnv('RETRY_DELAY_MS', '2000'), 10),
     logLevel: (getEnv('LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error'),
+    openAiApiKey: getEnv('OPENAI_API_KEY'),
     useTestAudio: getEnv('USE_TEST_AUDIO', 'false').toLowerCase() === 'true',
   };
 
@@ -39,14 +40,14 @@ export function loadConfig(): WorkerConfig {
  */
 function getEnv(key: string, defaultValue?: string): string {
   const value = process.env[key];
-  
+
   if (value === undefined || value === '') {
     if (defaultValue !== undefined) {
       return defaultValue;
     }
     throw new Error(`Missing required environment variable: ${key}`);
   }
-  
+
   return value;
 }
 

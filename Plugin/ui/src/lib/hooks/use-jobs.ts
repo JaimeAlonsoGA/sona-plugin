@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 import { submitJob, getJob, getUserJobs, subscribeToJob } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
+import { useIsAuthenticated } from './use-supabase'
 
 /**
  * Query keys for consistent cache management
@@ -68,17 +69,21 @@ export function useJob(
 
 /**
  * Hook to fetch all jobs for the current user
+ * Only fetches when user is authenticated
  * 
  * @param limit - Maximum number of jobs to fetch
  * @returns Query result with jobs array
  */
 export function useUserJobs(limit = 50) {
+  const isAuthenticated = useIsAuthenticated()
+  
   return useQuery({
     queryKey: jobQueryKeys.list(),
     queryFn: () => getUserJobs(limit),
     staleTime: 1000 * 60, // 1 minute - data considered fresh
     gcTime: 1000 * 60 * 5, // 5 minutes - keep in cache
     retry: 1,
+    enabled: isAuthenticated, // Only fetch when authenticated
   })
 }
 

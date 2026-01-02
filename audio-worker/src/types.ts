@@ -22,6 +22,10 @@ export interface Job {
   master_path?: string | null;
   /** Path to preview MP3 file in storage */
   preview_path?: string | null;
+  /** Enhanced/refined prompt used for generation */
+  enhanced_prompt?: string | null;
+  /** UCS-compliant filename for the generated audio */
+  filename?: string | null;
 }
 
 export interface WorkerConfig {
@@ -37,6 +41,7 @@ export interface WorkerConfig {
   maxRetries: number;
   retryDelayMs: number;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+  openAiApiKey: string;
   /** When true, uses test.mp3 instead of calling Stable Audio API */
   useTestAudio: boolean;
 }
@@ -58,5 +63,9 @@ export interface ProcessingResult {
   masterPath?: string;
   /** Path to preview MP3 file in storage */
   previewPath?: string;
+  /** Enhanced prompt used for generation */
+  enhancedPrompt?: string;
+  /** UCS-compliant filename */
+  filename?: string;
   error?: string;
 }

@@ -16,6 +16,7 @@ import {
   onAuthStateChange 
 } from '../supabase'
 import { useEffect } from 'react'
+import { jobQueryKeys } from './use-jobs'
 
 /**
  * Query key factory for consistent cache keys
@@ -41,7 +42,7 @@ export function useSession() {
 
 /**
  * Hook to listen to auth state changes
- * Automatically updates the session query cache
+ * Automatically updates the session query cache and invalidates user data
  */
 export function useAuthStateListener() {
   const queryClient = useQueryClient()
@@ -50,6 +51,17 @@ export function useAuthStateListener() {
     const { unsubscribe } = onAuthStateChange((session: Session | null) => {
       // Update session cache when auth state changes
       queryClient.setQueryData(queryKeys.session, session)
+      
+      // When auth state changes, invalidate all user-related queries
+      // This ensures fresh data on login and cleanup on logout
+      if (session) {
+        // User logged in - invalidate to refetch with new user context
+        queryClient.invalidateQueries({ queryKey: jobQueryKeys.all })
+      } else {
+        // User logged out - clear all cached data
+        queryClient.removeQueries({ queryKey: jobQueryKeys.all })
+        queryClient.removeQueries({ queryKey: queryKeys.user })
+      }
     })
     
     return () => {
@@ -74,6 +86,8 @@ export function useSignIn(options?: { onSuccess?: () => void }) {
       if (data.session) {
         // Update session cache
         queryClient.setQueryData(queryKeys.session, data.session)
+        // Invalidate and refetch all job queries for the new user
+        queryClient.invalidateQueries({ queryKey: jobQueryKeys.all })
       }
       // Call custom onSuccess if provided
       options?.onSuccess?.()
@@ -97,6 +111,8 @@ export function useSignUp(options?: { onSuccess?: () => void }) {
       if (data.session) {
         // Update session cache
         queryClient.setQueryData(queryKeys.session, data.session)
+        // Invalidate and refetch all job queries for the new user
+        queryClient.invalidateQueries({ queryKey: jobQueryKeys.all })
       }
       // Call custom onSuccess if provided
       options?.onSuccess?.()
@@ -118,11 +134,16 @@ export function useSignOut(options?: { onSuccess?: () => void }) {
     onSuccess: () => {
       // Clear session cache
       queryClient.setQueryData(queryKeys.session, null)
-      // Clear user cache
       queryClient.setQueryData(queryKeys.user, null)
-      // Remove all auth-related queries
+      
+      // Remove all cached queries to prevent stale data on next login
       queryClient.removeQueries({ queryKey: queryKeys.session })
       queryClient.removeQueries({ queryKey: queryKeys.user })
+      queryClient.removeQueries({ queryKey: jobQueryKeys.all })
+      
+      // Clear the entire cache to ensure clean state
+      queryClient.clear()
+      
       // Call custom onSuccess if provided
       options?.onSuccess?.()
     },
