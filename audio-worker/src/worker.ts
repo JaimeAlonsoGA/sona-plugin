@@ -10,6 +10,7 @@ import { StableAudioClient } from './stable-audio.js';
 import { TestAudioClient } from './test-audio.js';
 import { AudioProcessor } from './audio-processor.js';
 import { PromptEnhancerService } from './prompt-enhancer.js';
+import { initializeUCSRag } from './ucs-rag.js';
 
 export class AudioWorker {
   private config: WorkerConfig;
@@ -45,6 +46,19 @@ export class AudioWorker {
       maxConcurrentJobs: this.config.maxConcurrentJobs,
       pollIntervalMs: this.config.pollIntervalMs,
     });
+
+    // Initialize UCS RAG service (loads cached embeddings)
+    try {
+      const ucsRag = await initializeUCSRag(this.config.openAiApiKey);
+      const stats = ucsRag.getStats();
+      if (stats.ready) {
+        logger.info(`UCS RAG initialized: ${stats.entryCount} entries, ${stats.dimensions} dimensions`);
+      } else {
+        logger.warn('UCS RAG not ready - run "npm run generate-ucs-embeddings" to generate cache');
+      }
+    } catch (error) {
+      logger.warn('UCS RAG initialization failed, will use fallback categories:', error);
+    }
 
     // Ensure storage bucket exists
     const bucketReady = await this.supabase.ensureStorageBucket();
@@ -117,19 +131,37 @@ export class AudioWorker {
       prompt: job.prompt.substring(0, 50) + (job.prompt.length > 50 ? '...' : ''),
       duration: job.duration,
       quality: job.quality,
+      mode: job.mode,
+      hasNamingConvention: !!job.naming_convention,
+      namingConventionType: typeof job.naming_convention,
+      namingConventionRaw: JSON.stringify(job.naming_convention),
       testMode: this.config.useTestAudio,
     });
 
     try {
+      // Parse naming_convention if it's a string (from JSONB it should be object)
+      let namingConvention = job.naming_convention;
+      if (typeof namingConvention === 'string') {
+        try {
+          namingConvention = JSON.parse(namingConvention);
+          logger.debug('Parsed naming_convention from string');
+        } catch (e) {
+          logger.warn('Failed to parse naming_convention string', { error: e });
+          namingConvention = null;
+        }
+      }
+
       // Step 1: Enhance the prompt with OpenAI
       const enhancedData = await this.promptEnhancer.enhancePrompt(job.prompt, {
         duration: job.duration,
         quality: job.quality,
+        mode: job.mode,
+        namingConvention: namingConvention,
       });
 
       logger.info(`Prompt enhanced for job ${job.id}`, {
         filename: enhancedData.filename,
-        category: enhancedData.ucsCategory,
+        category: enhancedData.metadata.category,
         enhancedPromptPreview: enhancedData.enhancedPrompt.substring(0, 100) + '...',
       });
 

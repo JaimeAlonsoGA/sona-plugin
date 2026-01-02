@@ -26,6 +26,20 @@ export interface Job {
   enhanced_prompt?: string | null;
   /** UCS-compliant filename for the generated audio */
   filename?: string | null;
+  /** User's naming convention configuration */
+  naming_convention?: NamingConventionConfig | null;
+}
+
+/**
+ * Naming convention configuration from user settings
+ */
+export interface NamingConventionConfig {
+  parameters: Array<{
+    type: string;
+    value?: string;
+    format?: string;
+  }>;
+  separator: string;
 }
 
 export interface WorkerConfig {

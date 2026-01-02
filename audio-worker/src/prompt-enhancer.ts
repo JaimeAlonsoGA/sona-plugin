@@ -3,145 +3,178 @@
  * 
  * Uses OpenAI to:
  * 1. Refine and enhance user prompts for better audio generation
- * 2. Generate UCS-compliant filenames for the output audio
+ * 2. Generate metadata for filename based on user's naming convention
+ * 
+ * When UCS category/subcategory is needed in the naming convention,
+ * uses RAG to retrieve relevant UCS entries instead of sending the full JSON.
  */
 
 import OpenAI from 'openai';
 import { z } from 'zod';
-import { WorkerConfig, QualityLevel } from './types.js';
+import { WorkerConfig, QualityLevel, NamingConventionConfig } from './types.js';
 import { logger } from './logger.js';
+import { getUCSRagService, UCSRagService, RetrievedUCSContext } from './ucs-rag.js';
 
-// UCS (Universal Category System) sound categories for naming
-const UCS_CATEGORIES = {
-  // Ambiences
-  AMB: 'Ambience',
-  // Atmospheres
-  ATM: 'Atmosphere',
-  // Drones
-  DRN: 'Drone',
-  // Foley
-  FLY: 'Foley',
-  // Impacts
-  IMP: 'Impact',
-  // Music elements
-  MUS: 'Music Element',
-  // Nature
-  NAT: 'Nature',
-  // Science Fiction
-  SCI: 'Sci-Fi',
-  // Synthesizers
-  SYN: 'Synthesizer',
-  // Textures
-  TXT: 'Texture',
-  // Transitions
-  TRN: 'Transition',
-  // Whooshes
-  WHO: 'Whoosh',
-  // Mechanical
-  MCH: 'Mechanical',
-  // Electronic
-  ELC: 'Electronic',
-  // Vocal
-  VOC: 'Vocal',
-  // Weapons
-  WPN: 'Weapon',
-  // Water
-  WTR: 'Water',
-  // Fire
-  FIR: 'Fire',
-  // Horror
-  HOR: 'Horror',
-  // Magical
-  MAG: 'Magic',
-  // User Interface
-  UI: 'UI',
-  // Other/General
-  GEN: 'General',
+// Fallback UCS categories (used when RAG is not available or not needed)
+const FALLBACK_UCS_CATEGORIES = {
+  AMB: 'Ambience', ATM: 'Atmosphere', DRN: 'Drone', FLY: 'Foley',
+  IMP: 'Impact', MUS: 'Music Element', NAT: 'Nature', SCI: 'Sci-Fi',
+  SYN: 'Synthesizer', TXT: 'Texture', TRN: 'Transition', WHO: 'Whoosh',
+  MCH: 'Mechanical', ELC: 'Electronic', VOC: 'Vocal', WPN: 'Weapon',
+  WTR: 'Water', FIR: 'Fire', HOR: 'Horror', MAG: 'Magic', UI: 'UI', GEN: 'General',
 } as const;
 
-// Zod schema for the OpenAI structured response
-const PromptEnhancementSchema = z.object({
-  enhanced_prompt: z.string().describe('The refined, standardized prompt in English with improved technical vocabulary for audio generation'),
-  ucs_category: z.enum(Object.keys(UCS_CATEGORIES) as [string, ...string[]]).describe('The UCS category ID that best matches the sound'),
-  fx_name: z.string().describe('A concise, descriptive name for the sound effect (2-4 words, PascalCase, no spaces)'),
-  reasoning: z.string().describe('Brief explanation of why this categorization and naming was chosen'),
+// Zod schema for OpenAI response - comprehensive metadata extraction
+const PromptMetadataSchema = z.object({
+  enhanced_prompt: z.string().describe('Refined prompt with technical audio vocabulary'),
+  // Sound design metadata
+  category: z.string().describe('UCS category ID (e.g., SYN, AMB, IMP)'),
+  subcategory: z.string().describe('More specific subcategory'),
+  fx_name: z.string().describe('Descriptive name in PascalCase'),
+  object: z.string().describe('Sound source/object'),
+  action: z.string().describe('Action/verb descriptor'),
+  // Musical metadata
+  instrument: z.string().describe('Instrument type if musical'),
+  type: z.string().describe('Sound type (Lead, Pad, Bass, Stab, etc.)'),
+  bpm: z.string().describe('Suggested BPM if rhythmic, empty if not'),
+  key: z.string().describe('Musical key if tonal (C, Csharp, D, etc.), empty if not'),
+  scale: z.string().describe('Scale type if applicable (Major, Minor)'),
 });
 
-export type PromptEnhancementResult = z.infer<typeof PromptEnhancementSchema>;
+export type PromptMetadata = z.infer<typeof PromptMetadataSchema>;
 
 export interface EnhancedPromptData {
   originalPrompt: string;
   enhancedPrompt: string;
   filename: string;
-  ucsCategory: string;
-  fxName: string;
+  metadata: PromptMetadata;
 }
 
 export interface PromptEnhancerConfig {
   duration: number;
   quality: QualityLevel;
+  mode?: string;
+  namingConvention?: NamingConventionConfig | null;
 }
+
+// Default UCS naming convention
+const DEFAULT_NAMING: NamingConventionConfig = {
+  parameters: [
+    { type: 'category' },
+    { type: 'fxName' },
+    { type: 'creator' },
+    { type: 'source' },
+  ],
+  separator: '_',
+};
 
 export class PromptEnhancerService {
   private client: OpenAI;
-  private model: string = 'gpt-4o-mini'; // Using gpt-4o-mini as gpt-5-nano equivalent
+  private model: string = 'gpt-5-nano-2025-08-07';
+  private ucsRag: UCSRagService;
 
   constructor(config: WorkerConfig) {
     this.client = new OpenAI({
       apiKey: config.openAiApiKey,
     });
+    this.ucsRag = getUCSRagService(config.openAiApiKey);
   }
 
   /**
-   * Enhance a user prompt and generate UCS-compliant filename
+   * Check if naming convention requires UCS category or subcategory
+   */
+  private needsUCSRetrieval(namingConvention: NamingConventionConfig | null | undefined): boolean {
+    if (!namingConvention?.parameters) return false;
+    
+    const ucsParams = ['category', 'subcategory'];
+    return namingConvention.parameters.some(p => ucsParams.includes(p.type));
+  }
+
+  /**
+   * Enhance prompt and generate filename based on naming convention
+   * Uses OpenAI Responses API with gpt-5-nano for fast classification
+   * When UCS is needed, retrieves relevant categories via RAG
    */
   async enhancePrompt(
     userPrompt: string,
     config: PromptEnhancerConfig
   ): Promise<EnhancedPromptData> {
     const startTime = Date.now();
+    const mode = config.mode || 'designer';
+    
+    // Check if we need UCS retrieval based on naming convention
+    const needsUCS = this.needsUCSRetrieval(config.namingConvention);
     
     try {
-      logger.info('Enhancing prompt with OpenAI...', { 
+      logger.info('Enhancing prompt with OpenAI Responses API...', { 
         promptLength: userPrompt.length,
         duration: config.duration,
         quality: config.quality,
+        mode,
+        hasNamingConvention: !!config.namingConvention,
+        needsUCS,
       });
 
-      const systemPrompt = this.buildSystemPrompt();
-      const userMessage = this.buildUserMessage(userPrompt, config);
+      // Retrieve UCS context via RAG if needed
+      let ucsContext: RetrievedUCSContext | null = null;
+      if (needsUCS && this.ucsRag.ready) {
+        ucsContext = await this.ucsRag.retrieve(userPrompt, 5);
+        logger.debug('UCS RAG context retrieved', {
+          entriesCount: ucsContext.entries.length,
+          topCatIds: ucsContext.entries.map(e => e.catId),
+        });
+      }
 
-      const response = await this.client.chat.completions.create({
+      // Build prompt with or without UCS context
+      const prompt = this.buildPrompt(userPrompt, config, mode, ucsContext);
+
+      // Use Responses API for GPT-5 family models
+      // gpt-5-nano is optimized for high-throughput simple tasks
+      const response = await this.client.responses.create({
         model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.7,
-        max_tokens: 500,
+        input: prompt,
+        // Minimal reasoning for simple classification/enhancement
+        // gpt-5-nano supports: 'minimal', 'low', 'medium', 'high'
+        reasoning: { effort: 'minimal' },
+        // Low verbosity for concise JSON output
+        text: { verbosity: 'low' },
+        max_output_tokens: 500,
       });
 
-      const content = response.choices[0]?.message?.content;
+      // Debug log the response structure
+      logger.debug('OpenAI Responses API response received', {
+        id: response.id,
+        model: response.model,
+        status: response.status,
+        hasOutput: !!response.output_text,
+        outputLength: response.output_text?.length || 0,
+      });
+
+      const content = response.output_text;
       
       if (!content) {
-        throw new Error('Empty response from OpenAI');
+        throw new Error('Empty response from OpenAI Responses API');
+      }
+
+      // Clean content - remove markdown code blocks if present
+      let jsonContent = content.trim();
+      if (jsonContent.startsWith('```')) {
+        jsonContent = jsonContent.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
       }
 
       // Parse and validate with Zod
-      const parsed = JSON.parse(content);
-      const validated = PromptEnhancementSchema.parse(parsed);
+      const parsed = JSON.parse(jsonContent);
+      const metadata = PromptMetadataSchema.parse(parsed);
 
-      // Build UCS-compliant filename
-      // Format: CatID_FXName_CreatorID_SourceID
-      const filename = this.buildFilename(validated.ucs_category, validated.fx_name);
+      // Build filename using user's naming convention or default
+      const namingConfig = config.namingConvention || DEFAULT_NAMING;
+      const filename = this.buildFilename(metadata, namingConfig);
 
       const result: EnhancedPromptData = {
         originalPrompt: userPrompt,
-        enhancedPrompt: validated.enhanced_prompt,
+        enhancedPrompt: metadata.enhanced_prompt,
         filename,
-        ucsCategory: validated.ucs_category,
-        fxName: validated.fx_name,
+        metadata,
       };
 
       const elapsed = Date.now() - startTime;
@@ -153,81 +186,176 @@ export class PromptEnhancerService {
       return result;
     } catch (error) {
       logger.error('Failed to enhance prompt:', error);
-      
-      // Fallback: return original prompt with generic filename
-      return this.createFallbackResult(userPrompt);
+      return this.createFallbackResult(userPrompt, config);
     }
   }
 
   /**
-   * Build the system prompt for OpenAI
+   * Build the combined prompt for Responses API
+   * Uses RAG-retrieved UCS context when available, otherwise falls back to basic categories
    */
-  private buildSystemPrompt(): string {
-    const categories = Object.entries(UCS_CATEGORIES)
-      .map(([id, name]) => `${id}: ${name}`)
-      .join(', ');
+  private buildPrompt(
+    userPrompt: string, 
+    config: PromptEnhancerConfig, 
+    mode: string,
+    ucsContext: RetrievedUCSContext | null
+  ): string {
+    const modeContext = mode === 'producer' 
+      ? 'Focus on musical elements: instrument, type, BPM, key.'
+      : 'Focus on sound design: category, object, action.';
 
-    return `You are an expert sound designer assistant specializing in audio generation prompts. Your job is to:
+    // Build UCS context section
+    let ucsSection: string;
+    if (ucsContext && ucsContext.entries.length > 0) {
+      // Use RAG-retrieved entries - LLM must choose from these
+      ucsSection = `${ucsContext.formatted}
 
-1. ENHANCE USER PROMPTS: Transform user prompts into professional, technical descriptions optimized for AI audio generation. Always output in English, regardless of input language. Use precise audio terminology (e.g., "warm analog saturation", "spectral shimmer", "granular texture", "formant shifting", "bitcrushed artifacts", "reverberant tail", "transient punch", "harmonic overtones").
+IMPORTANT: You MUST select category from the above list. Use the CatID value (e.g., "AIRBlow", "AMBQuiet").`;
+    } else {
+      // Fallback to basic categories when RAG not available
+      const categories = Object.entries(FALLBACK_UCS_CATEGORIES)
+        .map(([id, name]) => `${id}: ${name}`)
+        .join(', ');
+      ucsSection = `UCS Categories: ${categories}`;
+    }
 
-2. CATEGORIZE SOUNDS: Assign the most appropriate UCS (Universal Category System) category:
-${categories}
+    return `You are a sound designer. Analyze this audio prompt and return JSON only.
 
-3. NAME THE SOUND: Create a concise, professional sound effect name in PascalCase (2-4 words, no spaces).
+${modeContext}
 
-RULES:
-- Enhanced prompts should be 1-3 sentences, technically precise, and avoid ambiguous terms
-- Focus on sonic characteristics: timbre, texture, envelope, frequency content, spatial qualities
-- Include descriptors for: attack, sustain, decay, modulation, filtering, effects
-- FX names should be evocative and industry-standard (e.g., "DeepBass", "ShimmerPad", "GrittyImpact")
+${ucsSection}
 
-Respond ONLY with valid JSON matching this schema:
-{
-  "enhanced_prompt": "string",
-  "ucs_category": "string (one of the category IDs)",
-  "fx_name": "string (PascalCase, 2-4 words)",
-  "reasoning": "string (brief explanation)"
-}`;
+PROMPT: "${userPrompt}"
+Duration: ${config.duration}s
+
+Return this exact JSON structure (no markdown, no explanation):
+{"enhanced_prompt":"<improved prompt for AI audio generation>","category":"<UCS CatID from above>","subcategory":"<specific type>","fx_name":"<PascalCase name>","object":"<sound source>","action":"<action verb>","instrument":"<if musical>","type":"<Lead/Pad/Bass/etc>","bpm":"<if rhythmic>","key":"<if tonal>","scale":"<Major/Minor>"}
+
+Use empty strings for non-applicable fields.`;
   }
 
   /**
-   * Build the user message with context
+   * Build filename from metadata using the naming convention
    */
-  private buildUserMessage(prompt: string, config: PromptEnhancerConfig): string {
-    return `Please enhance this audio generation prompt and provide naming metadata.
-
-USER PROMPT: "${prompt}"
-
-CONTEXT:
-- Target duration: ${config.duration} seconds
-- Quality setting: ${config.quality}
-- Output format: Professional audio sample
-
-Enhance the prompt for optimal AI audio generation and provide the UCS category and filename.`;
-  }
-
-  /**
-   * Build UCS-compliant filename
-   * Format: CatID_FXName_CreatorID_SourceID
-   */
-  private buildFilename(category: string, fxName: string): string {
-    const creatorId = 'SonaIA';
-    const sourceId = 'StableAudio';
+  private buildFilename(
+    metadata: PromptMetadata,
+    convention: NamingConventionConfig
+  ): string {
+    const parts: string[] = [];
     
-    // Ensure FX name is clean (PascalCase, no spaces or special chars)
-    const cleanFxName = fxName
+    // Validate convention has parameters array
+    const parameters = Array.isArray(convention?.parameters) ? convention.parameters : [];
+    
+    logger.debug('Building filename with convention', {
+      parametersCount: parameters.length,
+      parameters: parameters.map(p => p.type),
+      separator: convention?.separator,
+    });
+    
+    for (const param of parameters) {
+      const value = this.getParameterValue(param.type, metadata, param.value, param.format);
+      logger.debug(`Parameter ${param.type} = "${value}"`);
+      if (value) {
+        parts.push(this.sanitizeFilenamePart(value));
+      }
+    }
+
+    // Ensure we have at least something
+    if (parts.length === 0) {
+      parts.push(metadata.category || 'GEN');
+      parts.push(metadata.fx_name || 'Sound');
+    }
+    
+    const filename = parts.join(convention?.separator || '_');
+    logger.debug('Final filename parts', { parts, filename });
+
+    return filename;
+  }
+
+  /**
+   * Get the value for a parameter type
+   */
+  private getParameterValue(
+    type: string,
+    metadata: PromptMetadata,
+    customValue?: string,
+    format?: string
+  ): string {
+    switch (type) {
+      case 'category':
+        return metadata.category || 'GEN';
+      case 'subcategory':
+        return metadata.subcategory || '';
+      case 'fxName':
+        return metadata.fx_name || 'Sound';
+      case 'object':
+        return metadata.object || '';
+      case 'action':
+        return metadata.action || '';
+      case 'variation':
+        return '01';
+      case 'instrument':
+        return metadata.instrument || '';
+      case 'type':
+        return metadata.type || '';
+      case 'bpm':
+        return metadata.bpm || '';
+      case 'key':
+        return metadata.key || '';
+      case 'scale':
+        return metadata.scale || '';
+      case 'creator':
+        return 'SonaIA';
+      case 'source':
+        return 'StableAudio';
+      case 'date':
+        return this.formatDate(format);
+      case 'timestamp':
+        return Date.now().toString();
+      case 'uuid':
+        return this.generateShortId();
+      case 'custom':
+        return customValue || '';
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * Format date according to format string
+   */
+  private formatDate(format?: string): string {
+    const d = new Date();
+    const fmt = format || 'YYYYMMDD';
+    return fmt
+      .replace('YYYY', d.getFullYear().toString())
+      .replace('MM', (d.getMonth() + 1).toString().padStart(2, '0'))
+      .replace('DD', d.getDate().toString().padStart(2, '0'));
+  }
+
+  /**
+   * Generate a short unique ID
+   */
+  private generateShortId(): string {
+    return Math.random().toString(36).substr(2, 6);
+  }
+
+  /**
+   * Sanitize a filename part
+   */
+  private sanitizeFilenamePart(value: string): string {
+    return value
       .replace(/[^a-zA-Z0-9]/g, '')
       .replace(/^\w/, c => c.toUpperCase());
-
-    return `${category}_${cleanFxName}_${creatorId}_${sourceId}`;
   }
 
   /**
-   * Create a fallback result when OpenAI fails
+   * Create fallback result when OpenAI fails
    */
-  private createFallbackResult(userPrompt: string): EnhancedPromptData {
-    // Extract a simple name from the prompt
+  private createFallbackResult(
+    userPrompt: string,
+    config: PromptEnhancerConfig
+  ): EnhancedPromptData {
     const words = userPrompt
       .replace(/[^a-zA-Z\s]/g, '')
       .split(/\s+/)
@@ -238,16 +366,34 @@ Enhance the prompt for optimal AI audio generation and provide the UCS category 
       ? words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('')
       : 'GeneratedSound';
 
-    const filename = `GEN_${fxName}_SonaIA_StableAudio`;
+    const fallbackMetadata: PromptMetadata = {
+      enhanced_prompt: userPrompt,
+      category: 'GEN',
+      subcategory: '',
+      fx_name: fxName,
+      object: '',
+      action: '',
+      instrument: '',
+      type: '',
+      bpm: '',
+      key: '',
+      scale: '',
+    };
+
+    // Ensure namingConfig has valid parameters array
+    let namingConfig = config.namingConvention;
+    if (!namingConfig || !Array.isArray(namingConfig.parameters)) {
+      namingConfig = DEFAULT_NAMING;
+    }
+    const filename = this.buildFilename(fallbackMetadata, namingConfig);
 
     logger.warn('Using fallback prompt enhancement', { filename });
 
     return {
       originalPrompt: userPrompt,
-      enhancedPrompt: userPrompt, // Use original as fallback
+      enhancedPrompt: userPrompt,
       filename,
-      ucsCategory: 'GEN',
-      fxName,
+      metadata: fallbackMetadata,
     };
   }
 }
