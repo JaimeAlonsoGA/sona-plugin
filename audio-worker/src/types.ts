@@ -28,6 +28,27 @@ export interface Job {
   filename?: string | null;
   /** User's naming convention configuration */
   naming_convention?: NamingConventionConfig | null;
+  /** Musical key configuration (JSON string: { key: string, scale: string }) */
+  musical_key?: string | null;
+  /** Producer mode configuration (JSON string: { bpm, timeSignature, bars }) */
+  producer_config?: string | null;
+}
+
+/**
+ * Parsed musical key from job
+ */
+export interface MusicalKey {
+  key: string;  // e.g., 'C', 'C#', 'D', etc.
+  scale: 'major' | 'minor';
+}
+
+/**
+ * Parsed producer config from job
+ */
+export interface ProducerConfig {
+  bpm: number;
+  timeSignature: string;  // e.g., '4/4'
+  bars: number;
 }
 
 /**

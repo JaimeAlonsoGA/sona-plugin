@@ -7,12 +7,16 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom'
 import { useSession } from '../lib/hooks'
+import { WelcomeModal } from '../components/WelcomeModal'
+import { CommandPalette } from '../components/CommandPalette'
 
 // Lazy load pages for better performance
 const SonaPage = lazy(() => import('../pages/sona'))
 const AuthPage = lazy(() => import('../pages/auth'))
 const ProfilePage = lazy(() => import('../pages/profile'))
 const SoundsPage = lazy(() => import('../pages/sounds'))
+const BillingPage = lazy(() => import('../pages/billing'))
+const CheckoutPage = lazy(() => import('../pages/checkout'))
 
 // Loading fallback component
 const PageLoader = () => (
@@ -30,6 +34,17 @@ const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
     {children}
   </Suspense>
 )
+
+// Root layout with global components (modals, command palette)
+const RootLayout = () => {
+  return (
+    <>
+      <Outlet />
+      <WelcomeModal />
+      <CommandPalette />
+    </>
+  )
+}
 
 // Protected route wrapper - requires authentication
 const ProtectedRoute = () => {
@@ -63,48 +78,69 @@ const PublicRoute = () => {
 
 // Route definitions
 const router = createBrowserRouter([
-  // Public routes (redirect to home if authenticated)
   {
-    element: <PublicRoute />,
+    element: <RootLayout />,
     children: [
+      // Public routes (redirect to home if authenticated)
       {
-        path: '/auth',
-        element: (
-          <SuspenseWrapper>
-            <AuthPage />
-          </SuspenseWrapper>
-        ),
+        element: <PublicRoute />,
+        children: [
+          {
+            path: '/auth',
+            element: (
+              <SuspenseWrapper>
+                <AuthPage />
+              </SuspenseWrapper>
+            ),
+          },
+        ],
       },
-    ],
-  },
-  
-  // Protected routes (require authentication)
-  {
-    element: <ProtectedRoute />,
-    children: [
+      
+      // Protected routes (require authentication)
       {
-        path: '/',
-        element: (
-          <SuspenseWrapper>
-            <SonaPage />
-          </SuspenseWrapper>
-        ),
-      },
-      {
-        path: '/profile',
-        element: (
-          <SuspenseWrapper>
-            <ProfilePage />
-          </SuspenseWrapper>
-        ),
-      },
-      {
-        path: '/sounds',
-        element: (
-          <SuspenseWrapper>
-            <SoundsPage />
-          </SuspenseWrapper>
-        ),
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: '/',
+            element: (
+              <SuspenseWrapper>
+                <SonaPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: '/profile',
+            element: (
+              <SuspenseWrapper>
+                <ProfilePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: '/sounds',
+            element: (
+              <SuspenseWrapper>
+                <SoundsPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: '/billing',
+            element: (
+              <SuspenseWrapper>
+                <BillingPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: '/billing/checkout',
+            element: (
+              <SuspenseWrapper>
+                <CheckoutPage />
+              </SuspenseWrapper>
+            ),
+          },
+        ],
       },
     ],
   },
@@ -127,6 +163,8 @@ export const ROUTES = {
   AUTH: '/auth',
   PROFILE: '/profile',
   SOUNDS: '/sounds',
+  BILLING: '/billing',
+  CHECKOUT: '/billing/checkout',
 } as const
 
 export type RoutePath = typeof ROUTES[keyof typeof ROUTES]

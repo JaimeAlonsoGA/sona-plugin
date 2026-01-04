@@ -177,23 +177,29 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
 
   return (
     <div className="sona-glass p-5">
-      {/* Filename Display */}
-      {audioUrl && filename && (
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-[var(--sona-text)] text-sm font-mono truncate">
-            {filename}
+      {/* Filename Display - Fixed height to prevent layout shift */}
+      <div className="h-6 mb-3 flex items-center justify-between">
+        {audioUrl && filename ? (
+          <>
+            <span className="text-[var(--sona-text)] text-sm font-mono truncate">
+              {filename}
+            </span>
+            <span className="text-[var(--sona-text-muted)] text-xs ml-2 shrink-0">
+              .wav
+            </span>
+          </>
+        ) : (
+          <span className="text-[var(--sona-text-subtle)] text-xs">
+            Ready to create
           </span>
-          <span className="text-[var(--sona-text-muted)] text-xs ml-2 shrink-0">
-            .wav
-          </span>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Waveform Container */}
-      <div className="relative mb-5">
+      {/* Waveform Container - Fixed height */}
+      <div className="relative h-16 mb-5">
         <div 
           ref={containerRef} 
-          className="sona-waveform w-full cursor-pointer"
+          className="sona-waveform w-full h-full cursor-pointer overflow-hidden"
           onClick={(e) => {
             if (!isReady) return
             const rect = e.currentTarget.getBoundingClientRect()
@@ -243,7 +249,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
       </div>
 
       {/* Progress bar */}
-      <div className="h-px bg-[var(--sona-border)] rounded-full mb-5 overflow-hidden">
+      <div className="h-px bg-[var(--sona-border)] rounded-full mb-4 overflow-hidden">
         <motion.div
           className="h-full bg-[var(--sona-sage)]"
           style={{ width: `${progress}%` }}
@@ -251,17 +257,67 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
         />
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-3">
-        {/* Left: Time */}
-        <div className="w-16 text-xs font-mono text-[var(--sona-text-muted)]">
-          {formatTime(currentTime)}
+      {/* Controls - Single row */}
+      <div className="flex items-center gap-2">
+        {/* Left: Loop & Volume */}
+        <div className="flex items-center gap-1">
+          <IconButton
+            icon={<LoopIcon size={14} />}
+            onClick={() => setIsLooping(!isLooping)}
+            disabled={!audioUrl}
+            variant={isLooping ? 'sage' : 'ghost'}
+            size="sm"
+            label="Loop (L)"
+          />
+          <div 
+            className="relative flex items-center"
+            onMouseEnter={handleVolumeMouseEnter}
+            onMouseLeave={handleVolumeMouseLeave}
+          >
+            <IconButton
+              icon={<VolumeIcon size={14} level={getVolumeLevel()} />}
+              onClick={() => setIsMuted(!isMuted)}
+              disabled={!audioUrl}
+              size="sm"
+              label="Mute (M)"
+            />
+            <AnimatePresence>
+              {showVolumeSlider && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 60 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="ml-1 overflow-hidden"
+                >
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="w-full h-1 bg-[var(--sona-border)] rounded-full appearance-none cursor-pointer
+                      [&::-webkit-slider-thumb]:appearance-none
+                      [&::-webkit-slider-thumb]:w-2
+                      [&::-webkit-slider-thumb]:h-2
+                      [&::-webkit-slider-thumb]:rounded-full
+                      [&::-webkit-slider-thumb]:bg-[var(--sona-sage)]
+                      [&::-webkit-slider-thumb]:cursor-pointer"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Center: Playback controls */}
+        {/* Center: Time + Playback controls + Duration */}
         <div className="flex-1 flex items-center justify-center gap-2">
+          <span className="text-[10px] font-mono text-[var(--sona-text-muted)] w-10 text-right">
+            {formatTime(currentTime)}
+          </span>
+
           <IconButton
-            icon={<SkipBackIcon size={15} />}
+            icon={<SkipBackIcon size={14} />}
             onClick={() => skip(-5)}
             disabled={!isReady}
             size="sm"
@@ -273,7 +329,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
             disabled={!isReady}
             whileTap={{ scale: 0.95 }}
             className={`
-              w-11 h-11 rounded-full flex items-center justify-center
+              w-9 h-9 rounded-full flex items-center justify-center
               transition-all duration-300
               ${isReady
                 ? 'bg-[var(--sona-ember)] text-[var(--sona-cream)] hover:bg-[var(--sona-gold)] hover:text-[var(--sona-void)]'
@@ -281,82 +337,26 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
               }
             `}
           >
-            {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
+            {isPlaying ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
           </motion.button>
 
           <IconButton
-            icon={<SkipForwardIcon size={15} />}
+            icon={<SkipForwardIcon size={14} />}
             onClick={() => skip(5)}
             disabled={!isReady}
             size="sm"
             label="Forward 5s"
           />
-        </div>
 
-        {/* Right: Duration */}
-        <div className="w-16 text-xs font-mono text-[var(--sona-text-muted)] text-right">
-          {formatTime(duration)}
-        </div>
-      </div>
-
-      {/* Secondary controls */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--sona-border)]">
-        {/* Left: Loop */}
-        <IconButton
-          icon={<LoopIcon size={15} />}
-          onClick={() => setIsLooping(!isLooping)}
-          variant={isLooping ? 'sage' : 'ghost'}
-          size="sm"
-          label="Loop (L)"
-        />
-
-        {/* Center: Volume */}
-        <div 
-          className="relative flex items-center"
-          onMouseEnter={handleVolumeMouseEnter}
-          onMouseLeave={handleVolumeMouseLeave}
-        >
-          <IconButton
-            icon={<VolumeIcon size={15} level={getVolumeLevel()} />}
-            onClick={() => setIsMuted(!isMuted)}
-            size="sm"
-            label="Mute (M)"
-          />
-          
-          <AnimatePresence>
-            {showVolumeSlider && (
-              <motion.div
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 72 }}
-                exit={{ opacity: 0, width: 0 }}
-                className="ml-2 overflow-hidden"
-              >
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-full h-1 bg-[var(--sona-border)] rounded-full appearance-none cursor-pointer
-                    [&::-webkit-slider-thumb]:appearance-none
-                    [&::-webkit-slider-thumb]:w-2.5
-                    [&::-webkit-slider-thumb]:h-2.5
-                    [&::-webkit-slider-thumb]:rounded-full
-                    [&::-webkit-slider-thumb]:bg-[var(--sona-sage)]
-                    [&::-webkit-slider-thumb]:cursor-pointer
-                    [&::-webkit-slider-thumb]:transition-all
-                    [&::-webkit-slider-thumb]:hover:bg-[var(--sona-gold)]"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <span className="text-[10px] font-mono text-[var(--sona-text-muted)] w-10">
+            {formatTime(duration)}
+          </span>
         </div>
 
         {/* Right: Copy & Download */}
         <div className="flex items-center gap-1">
           <IconButton
-            icon={copied ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
+            icon={copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
             onClick={handleCopyToClipboard}
             disabled={!audioUrl}
             variant={copied ? 'sage' : 'ghost'}
@@ -364,7 +364,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
             label={copied ? 'Copied!' : 'Copy'}
           />
           <IconButton
-            icon={<DownloadIcon size={15} />}
+            icon={<DownloadIcon size={14} />}
             onClick={handleDownload}
             disabled={!audioUrl}
             size="sm"

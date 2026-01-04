@@ -1,0 +1,34 @@
+
+<BETA>Sección de consejos de prompting y uso de plugin (manual de instrucciones)
+Mejorar paleta de comandos y menú rápido
+
+
+<BETA>Estudiar Stable Audio Prompting y mejorar enhance-audio.ts
+Añadir opción SFX/Stem/Full Track
+Mejorar prompt de Stable Audio con steps (draft: 25, stnd: steps = 50, hq:steps = 100)
+
+
+<BETA>Crear /form para submitear feedback
+
+
+<BETA>Mejorar UX al generar
+
+
+<BETA>Mejorar UX de billing/checkout, que todos los métodos de pago funcionene y que haya opción de recordar tarjeta.
+
+
+<BETA>Optimizar y ajustar usos de mp3, wav, steps
+
+
+<BETA>Opción de controlar caracter de SONA. (ej.: creativa, inspirada, retro)
+
+
+<BETA>Poner servidor audio-worker en producción con Fly.io
+Comprar dominio, Subir Website
+
+
+<BETA>Crear landing page SONA
+
+
+<BETA>Mejorar loading state de Suspense
+

@@ -133,8 +133,8 @@ export class AudioWorker {
       quality: job.quality,
       mode: job.mode,
       hasNamingConvention: !!job.naming_convention,
-      namingConventionType: typeof job.naming_convention,
-      namingConventionRaw: JSON.stringify(job.naming_convention),
+      hasMusicalKey: !!job.musical_key,
+      hasProducerConfig: !!job.producer_config,
       testMode: this.config.useTestAudio,
     });
 
@@ -151,17 +151,54 @@ export class AudioWorker {
         }
       }
 
+      // Parse musical_key if provided
+      let musicalKey = null;
+      if (job.musical_key) {
+        try {
+          musicalKey = typeof job.musical_key === 'string' 
+            ? JSON.parse(job.musical_key) 
+            : job.musical_key;
+          logger.debug('Parsed musical_key', { musicalKey });
+        } catch (e) {
+          logger.warn('Failed to parse musical_key', { error: e });
+        }
+      }
+
+      // Parse producer_config if provided
+      let producerConfig = null;
+      if (job.producer_config) {
+        try {
+          producerConfig = typeof job.producer_config === 'string'
+            ? JSON.parse(job.producer_config)
+            : job.producer_config;
+          logger.info('Parsed producer_config from job', { 
+            raw: job.producer_config,
+            parsed: producerConfig,
+            bpm: producerConfig?.bpm,
+            timeSignature: producerConfig?.timeSignature,
+            bars: producerConfig?.bars,
+          });
+        } catch (e) {
+          logger.warn('Failed to parse producer_config', { error: e });
+        }
+      } else {
+        logger.debug('No producer_config in job', { mode: job.mode });
+      }
+
       // Step 1: Enhance the prompt with OpenAI
       const enhancedData = await this.promptEnhancer.enhancePrompt(job.prompt, {
         duration: job.duration,
         quality: job.quality,
         mode: job.mode,
         namingConvention: namingConvention,
+        musicalKey: musicalKey,
+        producerConfig: producerConfig,
       });
 
       logger.info(`Prompt enhanced for job ${job.id}`, {
         filename: enhancedData.filename,
         category: enhancedData.metadata.category,
+        musicalKey: musicalKey ? `${musicalKey.key} ${musicalKey.scale}` : 'none',
         enhancedPromptPreview: enhancedData.enhancedPrompt.substring(0, 100) + '...',
       });
 

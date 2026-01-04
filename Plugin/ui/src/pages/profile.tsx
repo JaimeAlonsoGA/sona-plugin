@@ -6,18 +6,11 @@
 
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useSession, useSignOut, useCompletedJobs } from '../lib/hooks'
+import { useSession, useSignOut, useCompletedJobs, useUserTokens } from '../lib/hooks'
 import { ROUTES } from '../routes'
 import { Card, Button, IconButton } from '../components/shared'
 import { ChevronLeftIcon, ChevronRightIcon, LogOutIcon, WaveformIcon } from '../components/shared/icons'
-
-// Mock subscription data - TODO: replace with real subscription data
-const mockSubscription = {
-  tier: 'Creator',
-  tokensUsed: 0,
-  tokensTotal: Infinity,
-  renewsAt: '2030-01-15',
-}
+import { NamingSettings } from '../components/profile'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
@@ -27,11 +20,11 @@ export default function ProfilePage() {
   })
 
   const { completedCount, isLoading: isLoadingJobs } = useCompletedJobs()
+  const { data: userTokens, isLoading: isLoadingTokens } = useUserTokens()
 
   const user = session?.user
   const userInitial = user?.email?.charAt(0).toUpperCase() || '?'
-  const tokensLeft = mockSubscription.tokensTotal - mockSubscription.tokensUsed
-  const tokensPercentage = (mockSubscription.tokensUsed / mockSubscription.tokensTotal) * 100
+  const tokenBalance = userTokens?.balance ?? 0
 
   return (
     <div className="page">
@@ -100,36 +93,49 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            interactive
+            onClick={() => navigate(ROUTES.BILLING)}
+            className="cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[var(--sona-text)] font-medium">Subscription</h2>
+              <h2 className="text-[var(--sona-text)] font-medium">Tokens</h2>
               <span className="sona-chip active">
-                {mockSubscription.tier}
+                Beta
               </span>
             </div>
 
-            {/* Tokens */}
+            {/* Token Balance */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[var(--sona-text-muted)] text-sm">Tokens remaining</span>
-                <span className="text-[var(--sona-gold)] font-medium">
-                  {tokensLeft === Infinity ? '∞' : tokensLeft}
-                </span>
+                <span className="text-[var(--sona-text-muted)] text-sm">Current balance</span>
+                {isLoadingTokens ? (
+                  <div className="h-5 w-12 bg-[var(--sona-border)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-[var(--sona-gold)] font-medium">
+                    {tokenBalance.toLocaleString()}
+                  </span>
+                )}
               </div>
               <div className="h-1 bg-[var(--sona-border)] rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${100 - tokensPercentage}%` }}
+                  animate={{ width: tokenBalance > 0 ? '100%' : '0%' }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="h-full bg-[var(--sona-sage)] rounded-full"
+                  className="h-full bg-[var(--sona-gold)] rounded-full"
                 />
               </div>
             </div>
 
-            <p className="sona-label">
-              Renews {mockSubscription.renewsAt}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[var(--sona-text-subtle)] text-xs">
+                Click to buy more tokens
+              </p>
+              <ChevronRightIcon size={16} className="text-[var(--sona-text-subtle)] group-hover:text-[var(--sona-gold)] transition-colors" />
+            </div>
           </Card>
+
+          {/* Naming Convention Settings */}
+          <NamingSettings />
 
           {/* Beta Notice */}
           <motion.div

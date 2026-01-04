@@ -10,6 +10,7 @@ import { useEffect, useMemo } from 'react'
 import { submitJob, getJob, getUserJobs, subscribeToJob } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 import { useIsAuthenticated } from './use-supabase'
+import { billingQueryKeys } from './use-billing'
 
 /**
  * Query keys for consistent cache management
@@ -37,6 +38,13 @@ export function useSubmitJob() {
 
       // Invalidate the list to refresh it
       queryClient.invalidateQueries({ queryKey: jobQueryKeys.list() })
+      
+      // Invalidate token balance since tokens were charged
+      queryClient.invalidateQueries({ queryKey: ['userTokens'] })
+      queryClient.invalidateQueries({ queryKey: ['hasTokens'] })
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      
+      console.log(`[useSubmitJob] Tokens charged: ${data.tokens_charged}`)
     },
     onError: (error) => {
       console.error('Job submission failed:', error)

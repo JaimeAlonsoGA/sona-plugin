@@ -180,6 +180,31 @@ export class UCSRagService {
   }
 
   /**
+   * Lookup a UCS entry by its CatID
+   * Returns the full category and subcategory info
+   */
+  lookupByCatId(catId: string): UCSEntry | null {
+    if (!this.ready) {
+      logger.warn('UCS RAG not ready for lookup');
+      return null;
+    }
+
+    const entry = this.entries.find(e => e.catId === catId);
+    if (!entry) {
+      logger.warn(`UCS entry not found for catId: ${catId}`);
+      return null;
+    }
+
+    return {
+      catId: entry.catId,
+      catShort: entry.catShort,
+      category: entry.category,
+      subCategory: entry.subCategory,
+      explanation: entry.explanation,
+    };
+  }
+
+  /**
    * Format retrieved UCS entries for LLM prompt
    */
   private formatForLLM(entries: UCSEntry[]): string {

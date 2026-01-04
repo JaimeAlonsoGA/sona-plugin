@@ -41,6 +41,16 @@
   --sona-sage: #7BA38E;
   --sona-sage-soft: rgba(123, 163, 142, 0.12);
   
+  /* Designer Mode - Cool teal/cyan for technical precision */
+  --sona-designer: #6BA3B5;
+  --sona-designer-soft: rgba(107, 163, 181, 0.12);
+  --sona-designer-glow: rgba(107, 163, 181, 0.25);
+  
+  /* Producer Mode - Warm amber/gold for creative flow */
+  --sona-producer: #D4A56A;
+  --sona-producer-soft: rgba(212, 165, 106, 0.12);
+  --sona-producer-glow: rgba(212, 165, 106, 0.25);
+  
   /* Text - Warm cream */
   --sona-cream: #F5F2E8;
   --sona-text: var(--sona-cream);
@@ -486,4 +496,75 @@ html, body {
 .sona-fade-edges::after {
   right: 0;
   background: linear-gradient(-90deg, var(--sona-surface), transparent);
+}
+
+/* 
+ ---break---
+ */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
+  }
+  .dark {
+    /* Sona dark theme - matching our design system */
+    --background: 0 0% 4%;
+    --foreground: 42 33% 93%;
+    --card: 0 0% 8.6%;
+    --card-foreground: 42 33% 93%;
+    --popover: 0 0% 8.6%;
+    --popover-foreground: 42 33% 93%;
+    --primary: 17 53% 63%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 42 33% 93%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 42 33% 55%;
+    --accent: 148 25% 49%;
+    --accent-foreground: 42 33% 93%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 42 33% 93%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 17 53% 63%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+/* 
+ ---break---
+ */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
 }

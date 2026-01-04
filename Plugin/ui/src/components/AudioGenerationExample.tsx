@@ -53,7 +53,7 @@ export function AudioGenerationExample() {
       prompt: prompt.trim(),
       duration: 10,
       quality: 'medium',
-      mode: 'default',
+      mode: 'designer',
     }
 
     try {

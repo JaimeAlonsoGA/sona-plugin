@@ -17,12 +17,73 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
 }
 
+// ============================================
+// TOKEN COST CONFIGURATION
+// Must match Plugin/ui/src/lib/token-costs.ts
+// ============================================
+const TOKEN_COSTS = {
+  BASE_COST: 20,
+  DURATION: { 3: 0, 10: 0, 30: 5, 60: 10 } as Record<number, number>,
+  QUALITY: { low: 0, medium: 0, high: 10 } as Record<string, number>,
+}
+
+/**
+ * Find the closest duration tier for cost calculation
+ */
+function findClosestDurationTier(duration: number): number {
+  const tiers = [3, 10, 30, 60]
+  for (const tier of tiers) {
+    if (duration <= tier) return tier
+  }
+  return 60
+}
+
+/**
+ * Calculate token cost based on generation parameters
+ */
+function calculateTokenCost(duration: number, quality: string): number {
+  let cost = TOKEN_COSTS.BASE_COST
+  
+  // Duration extra cost
+  const durationTier = findClosestDurationTier(duration)
+  cost += TOKEN_COSTS.DURATION[durationTier] ?? 0
+  
+  // Quality extra cost (map 'medium' to 'standard' for backward compat)
+  const qualityKey = quality === 'medium' ? 'medium' : quality
+  cost += TOKEN_COSTS.QUALITY[qualityKey] ?? 0
+  
+  return cost
+}
+
+/**
+ * Generate description for token transaction
+ */
+function generateCostDescription(duration: number, quality: string, prompt: string): string {
+  const promptSummary = prompt.length > 30 ? prompt.slice(0, 30) + '...' : prompt
+  return `Audio (${duration}s, ${quality}): "${promptSummary}"`
+}
+
 // Input validation schema
 interface GenerateRequest {
   prompt: string
   duration?: number
   quality?: 'low' | 'medium' | 'high'
-  mode?: string
+  mode?: 'designer' | 'producer'
+  namingConvention?: {
+    parameters: Array<{
+      type: string
+      value?: string
+      format?: string
+    }>
+    separator: string
+  }
+  // Musical key parameters
+  key?: string  // e.g., 'C', 'C#', 'D', etc.
+  scale?: 'major' | 'minor'
+  // Producer mode parameters
+  bpm?: number
+  timeSignature?: string  // e.g., '4/4'
+  bars?: number
 }
 
 interface JobRecord {
@@ -32,6 +93,11 @@ interface JobRecord {
   quality: string
   mode: string
   status: 'queued' | 'processing' | 'completed' | 'failed'
+  naming_convention?: string // JSON string
+  // Musical key (stored as JSON for flexibility)
+  musical_key?: string  // JSON: { key: string, scale: string }
+  // Producer metadata
+  producer_config?: string  // JSON: { bpm, timeSignature, bars }
   created_at?: string
 }
 
@@ -108,37 +174,23 @@ serve(async (req: Request) => {
     }
 
     // Create Supabase client with the user's JWT to verify identity
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      }
-    )
-
-    // Verify the JWT and get the user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     
-    if (userError || !user) {
-      console.error('Token verification failed:', userError?.message || 'No user')
-      return new Response(
-        JSON.stringify({ 
-          error: 'Unauthorized',
-          message: 'Invalid authentication token'
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    // Create admin client for database operations (bypasses RLS)
+    console.log('Auth debug:', {
+      hasToken: !!token,
+      tokenPreview: token?.substring(0, 30) + '...',
+      tokenAlg: token ? JSON.parse(atob(token.split('.')[0])).alg : 'unknown',
+      supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+      hasAnonKey: !!supabaseAnonKey,
+      hasServiceKey: !!supabaseServiceKey,
+    })
+    
+    // Use service role client to verify user - more reliable
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl,
+      supabaseServiceKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -146,6 +198,33 @@ serve(async (req: Request) => {
         },
       }
     )
+
+    // Verify the JWT using admin client's getUser with the token
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
+    
+    console.log('User verification result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      userError: userError?.message,
+      errorCode: userError?.code,
+    })
+    
+    if (userError || !user) {
+      console.error('Token verification failed:', userError?.message || 'No user')
+      return new Response(
+        JSON.stringify({ 
+          code: 401,
+          error: 'Unauthorized',
+          message: 'Invalid JWT',
+          details: userError?.message,
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
 
     // Log authentication success
     console.log(`Request authenticated for user: ${user.id}`)
@@ -185,23 +264,123 @@ serve(async (req: Request) => {
       )
     }
 
+    // ============================================
+    // TOKEN VERIFICATION AND CHARGING
+    // ============================================
+    const tokenCost = calculateTokenCost(
+      body.duration ?? 10,
+      body.quality ?? 'medium'
+    )
+    
+    console.log('Token cost calculation:', {
+      duration: body.duration ?? 10,
+      quality: body.quality ?? 'medium',
+      calculatedCost: tokenCost,
+    })
+
+    // Check if user has enough tokens
+    const { data: hasTokens, error: checkError } = await supabaseAdmin.rpc('check_user_tokens', {
+      p_user_id: user.id,
+      p_required: tokenCost,
+    })
+
+    if (checkError) {
+      console.error('Token check error:', checkError)
+      return new Response(
+        JSON.stringify({
+          error: 'Token Check Failed',
+          message: 'Could not verify token balance',
+          details: checkError.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    if (!hasTokens) {
+      console.log('Insufficient tokens for user:', user.id)
+      return new Response(
+        JSON.stringify({
+          error: 'Insufficient Tokens',
+          message: `This generation requires ${tokenCost} tokens`,
+          code: 'INSUFFICIENT_TOKENS',
+          required: tokenCost,
+        }),
+        {
+          status: 402, // Payment Required
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Charge tokens BEFORE creating the job
+    const costDescription = generateCostDescription(
+      body.duration ?? 10,
+      body.quality ?? 'medium',
+      body.prompt.trim()
+    )
+    
+    const { data: tokenCharged, error: chargeError } = await supabaseAdmin.rpc('use_tokens', {
+      p_user_id: user.id,
+      p_amount: tokenCost,
+      p_description: costDescription,
+    })
+
+    if (chargeError || !tokenCharged) {
+      console.error('Token charge failed:', chargeError?.message || 'Unknown error')
+      return new Response(
+        JSON.stringify({
+          error: 'Token Charge Failed',
+          message: 'Could not deduct tokens. Please try again.',
+          details: chargeError?.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    console.log('Tokens charged successfully:', { userId: user.id, amount: tokenCost })
+
     // Create job record in database
     const jobData: JobRecord = {
       user_id: user.id,
       prompt: body.prompt.trim(),
       duration: body.duration ?? 10, // Default 10 seconds
       quality: body.quality ?? 'medium', // Default medium quality
-      mode: body.mode ?? 'default',
+      mode: body.mode ?? 'designer',
       status: 'queued',
+      naming_convention: body.namingConvention ? JSON.stringify(body.namingConvention) : undefined,
+      // Store musical key if provided (check for key existence, not truthiness)
+      musical_key: body.key !== undefined && body.key !== null
+        ? JSON.stringify({ key: body.key, scale: body.scale || 'major' }) 
+        : undefined,
+      // Store producer config if in producer mode (check bpm with !== undefined)
+      producer_config: body.mode === 'producer' && body.bpm !== undefined && body.bpm !== null
+        ? JSON.stringify({ bpm: body.bpm, timeSignature: body.timeSignature || '4/4', bars: body.bars || 4 })
+        : undefined,
     }
 
-    // Log job creation (prompts are user content, not PII)
+    // Log job creation with all parameters - more detailed
     console.log('Creating job with params:', {
       user_id: user.id,
       duration: jobData.duration,
       quality: jobData.quality,
       mode: jobData.mode,
-      promptLength: jobData.prompt.length
+      promptLength: jobData.prompt.length,
+      hasNamingConvention: !!body.namingConvention,
+      // Raw input values for debugging
+      rawKey: body.key,
+      rawScale: body.scale,
+      rawBpm: body.bpm,
+      rawTimeSignature: body.timeSignature,
+      rawBars: body.bars,
+      // What we're storing
+      musical_key: jobData.musical_key,
+      producer_config: jobData.producer_config,
     })
 
     const { data: job, error: dbError } = await supabaseAdmin
@@ -228,13 +407,14 @@ serve(async (req: Request) => {
     // Log successful job creation with job ID for tracing
     console.log('Job created successfully with ID:', job.id)
 
-    // Return success response
+    // Return success response with token info
     return new Response(
       JSON.stringify({
         success: true,
         job_id: job.id,
         status: job.status,
         message: 'Job created successfully',
+        tokens_charged: tokenCost,
         job: {
           id: job.id,
           prompt: job.prompt,

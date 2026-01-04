@@ -49,5 +49,14 @@ enable_confirmations = false
 
 # Edge Functions configuration
 [functions.generate]
-# This links the edge function to be deployed
-verify_jwt = true
+# Disable gateway JWT verification - we handle auth in the function itself
+# This allows more flexibility and better error messages
+verify_jwt = false
+
+[functions.stripe-checkout]
+# Disable gateway JWT verification - we handle auth in the function itself
+verify_jwt = false
+
+[functions.stripe-webhook]
+# Webhooks don't have user JWT - they use Stripe signature verification
+verify_jwt = false
