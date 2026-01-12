@@ -17,6 +17,7 @@ export function loadConfig(): WorkerConfig {
     supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
     stableAudioApiKey: getEnv('STABLE_AUDIO_API_KEY', 'dummy-key-for-test-mode'),
     stableAudioApiUrl: getEnv('STABLE_AUDIO_API_URL', 'https://api.stability.ai/v2beta/stable-audio'),
+    replicateApiToken: getEnv('REPLICATE_API_TOKEN', ''),
     maxConcurrentJobs: parseInt(getEnv('MAX_CONCURRENT_JOBS', '2'), 10),
     pollIntervalMs: parseInt(getEnv('POLL_INTERVAL_MS', '5000'), 10),
     jobTimeoutMs: parseInt(getEnv('JOB_TIMEOUT_MS', '300000'), 10),
@@ -25,6 +26,7 @@ export function loadConfig(): WorkerConfig {
     maxRetries: parseInt(getEnv('MAX_RETRIES', '3'), 10),
     retryDelayMs: parseInt(getEnv('RETRY_DELAY_MS', '2000'), 10),
     logLevel: (getEnv('LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error'),
+    openAiApiKey: getEnv('OPENAI_API_KEY'),
     useTestAudio: getEnv('USE_TEST_AUDIO', 'false').toLowerCase() === 'true',
   };
 
@@ -39,14 +41,14 @@ export function loadConfig(): WorkerConfig {
  */
 function getEnv(key: string, defaultValue?: string): string {
   const value = process.env[key];
-  
+
   if (value === undefined || value === '') {
     if (defaultValue !== undefined) {
       return defaultValue;
     }
     throw new Error(`Missing required environment variable: ${key}`);
   }
-  
+
   return value;
 }
 

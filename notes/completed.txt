@@ -1,0 +1,71 @@
+
+<COMPLETADO><BETA>Añadir parámetros default para mejorar el prompting (sfx, loop, lead...)
+Crear prompting asistido estabilizar y mejorar resultados: da caracter a SONA y fiabilidad.
+
+
+<COMLETO><BETA>Elegir tonalidad.
+
+
+<COMPLETO><BETA>Dos opciones: 
+Diseñador, puedes seleccionar duración en segundos
+productor, puedes seleccionar duración en número de compases basado en el compás y tempo de la canción. Opción bpm sync.
+
+
+<COMPLETADO><BETA>Ajuste de nombrar samples. Usando la convención de diseño UCS, jerárquica, usando custom naming.
+Llamar API paralela de Text To Text en audio-worker para generar nombre basado en prompt del usuario y modo de naming seleccionado. 
+Prompt: 
+Implementa la opción en profile de elegir que naming quiere para sus sonidos. Si usando UCS (CatID_FXName_CreatorID_SourceID), naming jerárquico (Se organiza el nombre para que los archivos se agrupen lógicamente al ordenarlos alfabéticamente.
+Formato común: [Categoría]_[Objeto]_[Acción]_[Variación]) o musical, custom naming (opción de personalizar orden de los parámetros basado en parámetros predeterminados como [Categoría][Objeto][Acción][Variación] o custom params que pueda crear el usuario.  
+
+
+<COMPLETADO><BETA>Añadir accesibilidad:
+Mejorar Comandos ctrl+J 
+Tarjeta de bienvenida
+Sección de consejos de prompting y uso de plugin (manual de instrucciones)
+
+
+<COMPLETADO><BETA>Crear /billing para comprar más tokens y dejar listo sistema de subs para open beta.
+
+
+
+---------------- fase 2
+
+- Pensar escalabilidad de modelos.
+
+
+- Implementar configs de cada modo en su respectiva API. 
+
+
+- Pensar bien que configs tiene cada modo. 
+
+
+- UI changes: Añadir tips a la derecha de duration
+
+
+- UI: Mejorar ux en "on create" button 
+
+
+- Naming convention de producer para song no tiene sentido (Instrument_type_FXName)
+expected en song: prompt-psychedelic cumbia... result: Artist_SongName_Master_44k_16b.wav
+
+
+- UI: unaccesible duration/key on song/loop
+
+
+- Mejorar naming convention para producer modes (song: Artist_SongName_Master_44k_16b.wav)
+
+
+- Mejorar reproductor de audio (loop funcional, ux volumen bonita)
+
+
+- Optimizar flujo. Dividir llamadas a gpt-5-nano: 
+1. enhance-prompt (opcional, visible y editable por el user) 
+2. naming_convention, (if opción activida) = se ejecuta cuando "Create"
+
+
+- Añadir opción activar o desactivar (enhanced-prompt && auto naming convention)
+
+
+
+
+

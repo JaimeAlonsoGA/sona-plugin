@@ -31,13 +31,60 @@ export function isCompletedJob(job: Job): job is CompletedJob {
 }
 
 /**
+ * Naming convention config sent with job
+ */
+export interface NamingConventionConfig {
+  parameters: Array<{
+    type: string
+    value?: string
+    format?: string
+  }>
+  separator: string
+}
+
+/**
+ * Musical key type
+ */
+export type MusicalKey = 
+  | 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' 
+  | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B'
+
+/**
+ * Scale type
+ */
+export type Scale = 'major' | 'minor'
+
+/**
+ * Producer type for producer mode
+ */
+export type ProducerType = 'loop' | 'song'
+
+/**
  * Input for creating a new job
  */
 export interface CreateJobInput {
   prompt: string
-  duration?: number
+  duration?: number | null  // null means unspecified/auto (defaults to 10s)
   quality?: QualityLevel
-  mode?: string
+  mode?: 'designer' | 'producer' | 'creator'
+  /** Naming convention configuration */
+  namingConvention?: NamingConventionConfig
+  /** Skip GPT naming convention generation for faster processing */
+  skipNaming?: boolean
+  /** Musical key (optional) */
+  key?: MusicalKey
+  /** Scale type (optional, used with key) */
+  scale?: Scale
+  /** BPM for producer mode */
+  bpm?: number
+  /** Time signature as string (e.g., "4/4") */
+  timeSignature?: string
+  /** Number of bars for producer mode */
+  bars?: number
+  /** Producer type (song/loop/one-shot) for producer mode */
+  producerType?: ProducerType
+  /** User email for creator mode naming convention */
+  userEmail?: string
 }
 
 /**
@@ -48,6 +95,8 @@ export interface GenerateJobResponse {
   job_id: string
   status: JobStatus
   message: string
+  /** Number of tokens charged for this generation */
+  tokens_charged: number
   job: {
     id: string
     prompt: string
@@ -60,10 +109,14 @@ export interface GenerateJobResponse {
 }
 
 /**
- * Error response from API
+ * Error response from API - includes token-specific errors
  */
 export interface ApiErrorResponse {
   error: string
   message: string
   details?: string | string[]
+  /** Error code for specific handling */
+  code?: 'INSUFFICIENT_TOKENS' | string
+  /** Tokens required (for INSUFFICIENT_TOKENS error) */
+  required?: number
 }

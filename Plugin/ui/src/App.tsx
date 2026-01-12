@@ -9,7 +9,6 @@ import { useEffect } from 'react'
 import { useBridge } from './lib/bridge'
 import { useAuthStateListener } from './lib/hooks'
 import { AppRouter } from './routes'
-import { AnnouncementModal } from './components/AnnouncementModal'
 
 export function App() {
   const { sendToPlugin, onMessage } = useBridge()
@@ -37,10 +36,5 @@ export function App() {
     return unsubscribe
   }, [onMessage, sendToPlugin])
 
-  return (
-    <>
-      <AppRouter />
-      <AnnouncementModal />
-    </>
-  )
+  return <AppRouter />
 }

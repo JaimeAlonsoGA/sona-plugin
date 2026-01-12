@@ -1,0 +1,14 @@
+1 generation = 20 tokens = 20cents
+5 generations = 100 tokens = 1€
+
+
+5€ = 500 tokens = 25 generations <Open Beta Tier>
+
+2€ = 200 tokens = 10 generations <Buy More tier 1>
+5€                                <Buy More Tier 2>
+10€ = 1000 tokens = 50 generations <Buy More Tier 3>
+
+
+Sound Design prompt-enhancer
+<Genre>, <Instruments>, <Mood>, <Details>.
+Structure: 1. Core Source/Style 2. Action/Texture 3. Mood/Context 4. Details

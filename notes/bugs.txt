@@ -1,0 +1,14 @@
+[PRIOR]- Prompt enhancer for producer mode: 
+Instruments": [
+    "guitars",
+    "congas",
+    "electric bass with octave fuzz",
+    "synth arpeggios",
+    "sitars-like lead",
+    "hand percussion (maracas, claves)",
+    "kalimba-like plucks"
+  ]
+expected: the result shouldn't be an array of instruments for the naming convention
+
+[PRIOR]- Error with supabase storage when file beign big (30mb)
+reproduce: song with lenght 3minutes on HQ. 

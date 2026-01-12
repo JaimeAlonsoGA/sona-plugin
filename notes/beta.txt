@@ -1,0 +1,106 @@
+
+[PRIOR]- Pensar token usage en cada modo.
+|
+|
+- Hacer números para calcular pricing rentable.
+
+
+- Limpiar código y hacerlo modular y escalable.
+
+
+- UI: Sacar token usage y quality the prompt config
+Avisar de unpredictable results config.
+
+
+[PRIOR]- Añadir BPM, time signature, duration y bars FIXED en el prompt final
+
+
+- Crear manual de instrucciones. (docs)
+
+
+- Modo sin conexión
+
+
+[PRIOR]- User story de descarga y setup de plugin (landing, etc)
+
+
+[PRIOR]- Pensar en modelo y formato para producer mode
+
+
+[PRIOR]- Hacer un provider para no perder config, audio y prompt con profile
+
+
+- Mejorar comandos, y hacerlos accesibles
+
+
+[PRIOR]- Mejorar storage (no puede haber almacenamiento-permanente-de-audios-generados/user)
+Cada user puede guardar 7 audios.
+
+
+[PRIOR]- Arreglar bugs en bugs.txt
+
+
+[PRIOR]- UI: Mejorar loading state de <Suspense>
+
+
+[PRIOR]- Diseñar un icono
+
+
+[PRIOR]-Mejorar prompting de gpt-5-nano
+
+
+- Crear una dataset de test cases para mejorar el prompt enhancer.
+
+
+- Optimizar JUCE plugin
+
+
+[PRIOR]- Preparar producción BETA: Exportar JUCE, subir web
+
+
+[PRIOR]- Añadir límites a parámetros como el BPM
+
+
+- Implementar integración con el DAW (sync options, drag and drop)
+
+
+- Opción para cancelar la generación
+
+
+[PRIOR]- Opción de auto en duración hace algo.
+
+
+--------------------------------
+
+
+<BETA>Poder eliminar sonidos de librería
+
+
+<BETA>Crear /form para submitear feedback
+
+
+<BETA>Mejorar UX de billing/checkout, que todos los métodos de pago funcionene y que haya opción de recordar tarjeta.
+
+
+<BETA>Optimizar y ajustar usos de steps
+
+
+<BETA>Poner servidor audio-worker en producción con Fly.io
+Comprar dominio, Subir Website
+
+
+<BETA>Crear landing page SONA
+
+
+<BETA>Facilitar el prompting con opciones de alto nivel
+selector de género, de sound source, de instrumento, opción de stem. 
+
+
+<BETA>Importante en landing mostrar pros y contras de SONA frente a competidores.
+Ej: contra más lento, pro más customizable.
+
+
+<BETA>Crear presets
+
+
+<BETA>Añadir opción de auto-reload en billing   

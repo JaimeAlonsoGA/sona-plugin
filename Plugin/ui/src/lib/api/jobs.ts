@@ -25,39 +25,68 @@ export async function submitJob(input: CreateJobInput): Promise<GenerateJobRespo
     throw new Error('Prompt must be 500 characters or less')
   }
   
-  if (input.duration !== undefined && (input.duration < 1 || input.duration > 60)) {
-    throw new Error('Duration must be between 1 and 60 seconds')
+  if (input.duration !== undefined && input.duration !== null && (input.duration < 1 || input.duration > 180)) {
+    throw new Error('Duration must be between 1 and 180 seconds')
   }
 
-  // Validate that we have a session
-  const { data: { session } } = await supabase.auth.getSession()
+  // Get fresh session - this will auto-refresh if expired
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  
+  console.log('[Auth Debug] getSession result:', {
+    hasSession: !!session,
+    sessionError: sessionError?.message,
+    expiresAt: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : 'none',
+    tokenPreview: session?.access_token?.substring(0, 20) + '...',
+  })
+  
+  if (sessionError) {
+    console.error('Session error:', sessionError)
+    throw new Error('Authentication error. Please sign in again.')
+  }
   
   if (!session) {
     throw new Error('Not authenticated. Please sign in to submit a job.')
   }
 
+  // Check if token is expired
+  const now = Math.floor(Date.now() / 1000)
+  const isExpired = session.expires_at ? session.expires_at < now : false
+  console.log('[Auth Debug] Token status:', {
+    now,
+    expiresAt: session.expires_at,
+    isExpired,
+    secondsUntilExpiry: session.expires_at ? session.expires_at - now : 'unknown',
+  })
+
+  // Force refresh if expired
+  if (isExpired) {
+    console.log('[Auth Debug] Token expired, forcing refresh...')
+    const { data: { session: freshSession }, error: refreshError } = await supabase.auth.refreshSession()
+    
+    if (refreshError) {
+      console.error('[Auth Debug] Refresh failed:', refreshError.message)
+      throw new Error('Session expired. Please sign in again.')
+    }
+    
+    if (!freshSession) {
+      throw new Error('Failed to refresh session. Please sign in again.')
+    }
+    
+    console.log('[Auth Debug] Session refreshed successfully')
+  }
+
   try {
-    // Call the generate Edge Function using fetch directly
-    // Send token in custom header because Supabase gateway filters Authorization header
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const response = await fetch(`${supabaseUrl}/functions/v1/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-        'x-user-token': session.access_token,
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify(input),
+    // Use Supabase's built-in functions.invoke() which handles auth correctly
+    console.log('[Auth Debug] Invoking Edge Function via supabase.functions.invoke')
+    
+    const { data, error } = await supabase.functions.invoke('generate', {
+      body: input,
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Edge Function error:', response.status, errorText)
-      throw new Error(`Failed to submit job: ${response.status} - ${errorText}`)
+    if (error) {
+      console.error('Edge Function error:', error)
+      throw new Error(error.message || 'Failed to submit job')
     }
-
-    const data = await response.json() as GenerateJobResponse | ApiErrorResponse
 
     if (!data || !('success' in data)) {
       throw new Error('Invalid response from server')

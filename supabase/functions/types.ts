@@ -29,7 +29,7 @@ export interface Job {
 
 export interface CreateJobInput {
   prompt: string
-  duration?: number
+  duration?: number | null  // null means unspecified/auto (defaults to 10s)
   quality?: QualityLevel
   mode?: string
 }
@@ -78,7 +78,7 @@ CREATE TABLE jobs (
   error_message TEXT,
   result_url TEXT,
   
-  CONSTRAINT valid_duration CHECK (duration >= 1 AND duration <= 60),
+  CONSTRAINT valid_duration CHECK (duration >= 1 AND duration <= 180),
   CONSTRAINT valid_quality CHECK (quality IN ('low', 'medium', 'high')),
   CONSTRAINT valid_status CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
 );

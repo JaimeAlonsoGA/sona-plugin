@@ -1,53 +1,65 @@
 /**
  * Audio processing utilities
- * Handles WAV storage and MP3 conversion
+ * Handles WAV storage with optional MP3 conversion for future use
  */
 
 import { logger } from './logger.js';
 
+export interface ProcessAudioOptions {
+  /** Include MP3 conversion (not yet implemented, for future use) */
+  includeMp3?: boolean;
+}
+
 export interface AudioFiles {
   wav: Buffer;
-  mp3: Buffer;
+  mp3?: Buffer; // Optional, for future MP3 support
 }
 
 export class AudioProcessor {
   /**
-   * Process audio buffer - ensure WAV format and create MP3
+   * Process audio buffer - ensure WAV format
    * 
-   * Note: For production, you may want to use a proper audio processing library
-   * like ffmpeg-static or fluent-ffmpeg for better MP3 conversion.
-   * This implementation assumes the API returns WAV and creates a basic conversion.
+   * Currently only returns WAV. MP3 conversion can be enabled in the future
+   * by passing { includeMp3: true } in options.
+   * 
+   * @param audioBuffer - Raw audio data from API
+   * @param format - Format of the input audio ('wav', 'mp3', etc.)
+   * @param options - Processing options
    */
-  async processAudio(audioBuffer: ArrayBuffer, format: string): Promise<AudioFiles | null> {
+  async processAudio(
+    audioBuffer: ArrayBuffer,
+    format: string,
+    options: ProcessAudioOptions = {}
+  ): Promise<AudioFiles | null> {
     try {
       const buffer = Buffer.from(audioBuffer);
-      
+
       let wavBuffer: Buffer;
-      
+
       // If the audio is already in WAV format, use it directly
       if (format === 'wav') {
         wavBuffer = buffer;
         logger.debug('Audio is already in WAV format');
       } else {
-        // For other formats, we'll store as-is for WAV
-        // In production, you might want to convert to WAV here
-        logger.warn(`Audio format is ${format}, storing as WAV without conversion`);
+        // For other formats, we'll store as-is
+        // In production, you might want to convert to WAV here using ffmpeg
+        logger.warn(`Audio format is ${format}, storing without conversion`);
         wavBuffer = buffer;
       }
 
-      // For MP3 generation, we'll use a placeholder approach
-      // In production, use a proper audio encoding library
-      const mp3Buffer = await this.convertToMP3(wavBuffer);
+      const result: AudioFiles = { wav: wavBuffer };
 
-      if (!mp3Buffer) {
-        logger.error('Failed to create MP3 version');
-        return null;
+      // Optional MP3 conversion for future use
+      if (options.includeMp3) {
+        const mp3Buffer = await this.convertToMP3(wavBuffer);
+        if (mp3Buffer) {
+          result.mp3 = mp3Buffer;
+        } else {
+          logger.warn('MP3 conversion failed, continuing with WAV only');
+        }
       }
 
-      return {
-        wav: wavBuffer,
-        mp3: mp3Buffer,
-      };
+      return result;
     } catch (error) {
       logger.error('Error processing audio:', error);
       return null;
@@ -71,15 +83,15 @@ export class AudioProcessor {
       // TODO: Implement proper WAV to MP3 conversion
       // For MVP, we return the same buffer
       // This should be replaced with actual MP3 encoding
-      
+
       logger.warn('MP3 conversion not yet implemented, using WAV data as placeholder');
-      
+
       // In a real implementation, you would:
       // 1. Install a library like 'lamejs' or use ffmpeg
       // 2. Decode the WAV data
       // 3. Encode to MP3 format
       // 4. Return the MP3 buffer
-      
+
       // For now, return the WAV buffer as a placeholder
       // This ensures the system works end-to-end while proper encoding is implemented
       return wavBuffer;

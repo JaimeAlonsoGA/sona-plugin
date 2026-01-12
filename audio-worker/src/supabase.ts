@@ -20,6 +20,15 @@ export class SupabaseService {
           autoRefreshToken: false,
           persistSession: false,
         },
+        global: {
+          // Increase timeout for large file uploads (2 minutes)
+          fetch: (url, options = {}) => {
+            return fetch(url, {
+              ...options,
+              signal: AbortSignal.timeout(120000), // 2 minute timeout
+            });
+          },
+        },
       }
     );
   }
@@ -126,18 +135,30 @@ export class SupabaseService {
   async updateJobResult(
     jobId: string,
     masterPath: string,
-    previewPath: string
+    previewPath: string,
+    enhancedPrompt?: string,
+    filename?: string
   ): Promise<boolean> {
     try {
+      const updateData: Record<string, unknown> = {
+        master_path: masterPath,
+        preview_path: previewPath,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add enhanced prompt and filename if provided
+      if (enhancedPrompt) {
+        updateData.enhanced_prompt = enhancedPrompt;
+      }
+      if (filename) {
+        updateData.filename = filename;
+      }
+
       const { error } = await this.client
         .from('jobs')
-        .update({
-          master_path: masterPath,
-          preview_path: previewPath,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', jobId);
 
       if (error) {
@@ -145,7 +166,9 @@ export class SupabaseService {
         return false;
       }
 
-      logger.info(`Job ${jobId} completed with master and preview paths`);
+      logger.info(`Job ${jobId} completed with master and preview paths`, {
+        filename: filename || 'not provided',
+      });
       return true;
     } catch (error) {
       logger.error('Error updating job result:', error);
@@ -154,7 +177,7 @@ export class SupabaseService {
   }
 
   /**
-   * Upload audio file to Supabase Storage
+   * Upload audio file to Supabase Storage with retry logic
    * @returns The storage path of the uploaded file (not the full URL)
    */
   async uploadAudio(
@@ -162,26 +185,75 @@ export class SupabaseService {
     fileBuffer: Buffer,
     contentType: string
   ): Promise<string | null> {
-    try {
-      const { data, error } = await this.client.storage
-        .from(this.config.storageBucket)
-        .upload(filePath, fileBuffer, {
-          contentType,
-          upsert: false,
+    // TODO: Set maxRetries back to 3 for production
+    const maxRetries = 1; // Disabled retries for testing to avoid extra API costs
+    const retryDelayMs = 2000;
+    const fileSizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
+
+    logger.debug(`Preparing to upload file: ${filePath} (${fileSizeMB} MB)`);
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logger.debug(`Upload attempt ${attempt}/${maxRetries} for ${filePath}`);
+
+        const { data, error } = await this.client.storage
+          .from(this.config.storageBucket)
+          .upload(filePath, fileBuffer, {
+            contentType,
+            upsert: true, // Allow overwrite on retry
+          });
+
+        if (error) {
+          // Log detailed error information
+          logger.error(`Upload error (attempt ${attempt}/${maxRetries}):`, {
+            message: error.message,
+            name: error.name,
+            filePath,
+            fileSizeMB,
+            bucket: this.config.storageBucket,
+          });
+
+          // If this is the last attempt, return null
+          if (attempt === maxRetries) {
+            return null;
+          }
+
+          // Wait before retry
+          await this.sleep(retryDelayMs * attempt);
+          continue;
+        }
+
+        // Return the storage path (not the full URL)
+        logger.info('File uploaded successfully:', data.path);
+        return data.path;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        logger.error(`Upload exception (attempt ${attempt}/${maxRetries}):`, {
+          message: errorMessage,
+          filePath,
+          fileSizeMB,
+          bucket: this.config.storageBucket,
         });
 
-      if (error) {
-        logger.error('Error uploading to storage:', error);
-        return null;
-      }
+        // If this is the last attempt, return null
+        if (attempt === maxRetries) {
+          return null;
+        }
 
-      // Return the storage path (not the full URL)
-      logger.info('File uploaded successfully:', data.path);
-      return data.path;
-    } catch (error) {
-      logger.error('Error uploading audio:', error);
-      return null;
+        // Wait before retry
+        await this.sleep(retryDelayMs * attempt);
+      }
     }
+
+    return null;
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**

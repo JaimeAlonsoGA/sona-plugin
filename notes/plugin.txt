@@ -1,5 +1,0 @@
-Plugin functionality:
-
-
-Text field to write prompts
-generate button
