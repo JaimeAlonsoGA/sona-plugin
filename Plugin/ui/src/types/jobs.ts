@@ -55,15 +55,22 @@ export type MusicalKey =
 export type Scale = 'major' | 'minor'
 
 /**
+ * Producer type for producer mode
+ */
+export type ProducerType = 'loop' | 'song'
+
+/**
  * Input for creating a new job
  */
 export interface CreateJobInput {
   prompt: string
-  duration?: number
+  duration?: number | null  // null means unspecified/auto (defaults to 10s)
   quality?: QualityLevel
-  mode?: 'designer' | 'producer'
+  mode?: 'designer' | 'producer' | 'creator'
   /** Naming convention configuration */
   namingConvention?: NamingConventionConfig
+  /** Skip GPT naming convention generation for faster processing */
+  skipNaming?: boolean
   /** Musical key (optional) */
   key?: MusicalKey
   /** Scale type (optional, used with key) */
@@ -74,6 +81,10 @@ export interface CreateJobInput {
   timeSignature?: string
   /** Number of bars for producer mode */
   bars?: number
+  /** Producer type (song/loop/one-shot) for producer mode */
+  producerType?: ProducerType
+  /** User email for creator mode naming convention */
+  userEmail?: string
 }
 
 /**

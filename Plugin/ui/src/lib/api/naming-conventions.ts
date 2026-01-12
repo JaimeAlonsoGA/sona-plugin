@@ -102,6 +102,8 @@ export async function getUserNamingConventions(): Promise<NamingConvention[]> {
 export async function getUserNamingSettings(): Promise<{
   designerConventionId: string
   producerConventionId: string
+  creatorConventionId: string
+  namingEnabled: boolean
 } | null> {
   const userId = await getCurrentUserId()
   
@@ -123,6 +125,8 @@ export async function getUserNamingSettings(): Promise<{
   return {
     designerConventionId: data.designer_convention_id,
     producerConventionId: data.producer_convention_id,
+    creatorConventionId: data.creator_convention_id || data.producer_convention_id, // Fallback to producer
+    namingEnabled: data.naming_enabled ?? true,
   }
 }
 
@@ -222,9 +226,13 @@ export async function deleteNamingConvention(id: string): Promise<void> {
 export async function updateUserNamingSettings(settings: {
   designerConventionId?: string
   producerConventionId?: string
+  creatorConventionId?: string
+  namingEnabled?: boolean
 }): Promise<{
   designerConventionId: string
   producerConventionId: string
+  creatorConventionId: string
+  namingEnabled: boolean
 }> {
   const userId = await getCurrentUserId()
   
@@ -239,6 +247,8 @@ export async function updateUserNamingSettings(settings: {
     user_id: userId,
     designer_convention_id: settings.designerConventionId ?? existing?.designer_convention_id ?? 'ucs',
     producer_convention_id: settings.producerConventionId ?? existing?.producer_convention_id ?? 'musical-full',
+    creator_convention_id: settings.creatorConventionId ?? existing?.creator_convention_id ?? 'musical-full',
+    naming_enabled: settings.namingEnabled ?? existing?.naming_enabled ?? true,
   }
   
   const { data, error } = await supabase
@@ -255,6 +265,8 @@ export async function updateUserNamingSettings(settings: {
   return {
     designerConventionId: data.designer_convention_id,
     producerConventionId: data.producer_convention_id,
+    creatorConventionId: data.creator_convention_id ?? 'musical-full',
+    namingEnabled: data.naming_enabled ?? true,
   }
 }
 
@@ -266,7 +278,12 @@ export async function updateUserNamingSettings(settings: {
  */
 export async function fetchNamingData(): Promise<{
   conventions: NamingConvention[]
-  settings: { designerConventionId: string; producerConventionId: string } | null
+  settings: { 
+    designerConventionId: string
+    producerConventionId: string
+    creatorConventionId: string
+    namingEnabled: boolean 
+  } | null
 }> {
   const [conventions, settings] = await Promise.all([
     getUserNamingConventions(),

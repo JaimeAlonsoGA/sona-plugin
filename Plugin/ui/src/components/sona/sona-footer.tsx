@@ -9,7 +9,7 @@ import { NamingConvention } from "../../types/naming"
 interface SonaFooterProps {
   version?: string
   namingConvention?: NamingConvention
-  mode?: 'designer' | 'producer'
+  mode?: 'designer' | 'producer' | 'creator'
 }
 
 export function SonaFooter({ 
@@ -17,7 +17,11 @@ export function SonaFooter({
   namingConvention,
   mode = 'designer'
 }: SonaFooterProps) {
-  const modeColor = mode === 'designer' ? 'var(--sona-designer)' : 'var(--sona-producer)'
+  const modeColor = mode === 'designer' 
+    ? 'var(--sona-designer)' 
+    : mode === 'producer' 
+      ? 'var(--sona-producer)'
+      : 'var(--sona-creator)'
   
   return (  
     <footer className="flex items-center justify-between px-5 py-2.5 border-t border-[var(--sona-border)] bg-[var(--sona-void)]">

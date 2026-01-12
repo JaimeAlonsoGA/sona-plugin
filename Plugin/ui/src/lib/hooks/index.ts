@@ -40,6 +40,8 @@ export {
 } from './use-naming-conventions'
 export type { NamingConventionExport } from './use-naming-settings'
 
+export { useEnhancePrompt } from './use-enhance-prompt'
+
 export {
   useUserTokens,
   useTokenTransactions,

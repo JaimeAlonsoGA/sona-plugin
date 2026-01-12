@@ -26,9 +26,9 @@ import type {
   NamingParameterType,
 } from '../../types/naming'
 import { DEFAULT_PARAMETERS } from '../../types/naming'
-import { Headphones } from 'lucide-react'
+import { Headphones, Music, Zap } from 'lucide-react'
 
-type Mode = 'designer' | 'producer'
+type Mode = 'designer' | 'producer' | 'creator'
 
 interface NamingSettingsProps {
   /** Initial mode tab to show */
@@ -40,12 +40,14 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
   const [isEditing, setIsEditing] = useState(false)
   
   const {
+    settings,
     isLoaded,
     isSaving,
     error,
     getActiveConvention,
     getConventionsForMode,
     setActiveConvention,
+    setNamingEnabled,
     addConvention,
     duplicateConvention,
     startEditing,
@@ -143,10 +145,46 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
         )}
       </div>
 
+      {/* Enable/Disable Toggle */}
+      <div className="flex items-center justify-between mb-4 p-3 bg-[var(--sona-surface)] rounded-xl">
+        <div className="flex items-center gap-2">
+          <Zap size={14} className={settings.namingEnabled ? 'text-[var(--sona-sage)]' : 'text-[var(--sona-text-subtle)]'} />
+          <div>
+            <p className="text-sm text-[var(--sona-text)]">AI File Naming</p>
+            <p className="text-[10px] text-[var(--sona-text-subtle)]">
+              {settings.namingEnabled ? 'Generate smart file names' : 'Faster generation, simple names'}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setNamingEnabled(!settings.namingEnabled)}
+          className={`
+            relative w-11 h-6 rounded-full transition-colors duration-200
+            ${settings.namingEnabled 
+              ? 'bg-[var(--sona-sage)]' 
+              : 'bg-[var(--sona-border)]'
+            }
+          `}
+          aria-label={settings.namingEnabled ? 'Disable AI naming' : 'Enable AI naming'}
+        >
+          <span
+            className={`
+              absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm
+              transition-transform duration-200
+              ${settings.namingEnabled ? 'translate-x-5' : 'translate-x-0'}
+            `}
+          />
+        </button>
+      </div>
+
       {/* Loading State */}
       {!isLoaded ? (
         <div className="flex items-center justify-center py-8">
           <LoadingIcon size={24} className="text-[var(--sona-sage)] animate-spin" />
+        </div>
+      ) : !settings.namingEnabled ? (
+        <div className="text-center py-6 text-[var(--sona-text-subtle)] text-sm">
+          Enable AI File Naming to customize naming conventions
         </div>
       ) : (
         <>
@@ -165,6 +203,13 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
               onClick={() => setActiveMode('producer')}
               icon={<Headphones size={14} />}
               label="Producer"
+            />
+            <ModeTab
+              mode="creator"
+              activeMode={activeMode}
+              onClick={() => setActiveMode('creator')}
+              icon={<Music size={14} />}
+              label="Creator"
             />
           </div>
 

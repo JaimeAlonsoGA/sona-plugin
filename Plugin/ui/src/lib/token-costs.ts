@@ -14,10 +14,12 @@ export const TOKEN_COSTS = {
   
   /** Additional cost by duration (seconds) */
   DURATION: {
-    3: 0,   // Short - included in base
-    10: 0,  // Standard - included in base
-    30: 5,  // Long - extra processing
-    60: 10, // Maximum - significant extra
+    3: 0,    // Short - included in base
+    10: 0,   // Standard - included in base
+    30: 5,   // Long - extra processing
+    60: 10,  // 1 minute - significant extra
+    120: 15, // 2 minutes - very long
+    180: 20, // 3 minutes - maximum
   } as const,
   
   /** Additional cost by quality level */
@@ -93,7 +95,7 @@ export function getCostBreakdown(params: GenerationCostParams): CostBreakdown {
  * @returns The duration tier key
  */
 function findClosestDurationTier(duration: number): keyof typeof TOKEN_COSTS.DURATION {
-  const tiers = [3, 10, 30, 60] as const
+  const tiers = [3, 10, 30, 60, 120, 180] as const
   
   // Find the tier that the duration falls into (round up)
   for (const tier of tiers) {
@@ -103,7 +105,7 @@ function findClosestDurationTier(duration: number): keyof typeof TOKEN_COSTS.DUR
   }
   
   // If longer than max, use max tier
-  return 60
+  return 180
 }
 
 /**

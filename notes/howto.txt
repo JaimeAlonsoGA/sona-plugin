@@ -25,6 +25,8 @@ vite react ui Start::
 npm run dev
 
 Para inicar en modo pruebas
+.env en audio-worker pruebas a true
 
 Para iniciar en modo API
+.env en audio-worker pruebas a false
 

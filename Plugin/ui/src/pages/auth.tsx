@@ -55,15 +55,15 @@ export default function AuthPage() {
 
   return (
     <div className="page flex items-center justify-center p-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-xs"
       >
         {/* Logo */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-4">
           <SonaLogo size="xl" />
-          <motion.p 
+          <motion.p
             key={mode}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -126,11 +126,10 @@ export default function AuthPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className={`sona-input ${
-                    confirmPassword && !passwordsMatch
+                  className={`sona-input ${confirmPassword && !passwordsMatch
                       ? 'border-[var(--sona-ember)]'
                       : ''
-                  }`}
+                    }`}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />

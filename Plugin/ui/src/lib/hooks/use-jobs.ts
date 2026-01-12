@@ -10,7 +10,6 @@ import { useEffect, useMemo } from 'react'
 import { submitJob, getJob, getUserJobs, subscribeToJob } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 import { useIsAuthenticated } from './use-supabase'
-import { billingQueryKeys } from './use-billing'
 
 /**
  * Query keys for consistent cache management

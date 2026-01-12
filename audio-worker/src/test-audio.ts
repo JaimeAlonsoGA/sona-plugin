@@ -8,14 +8,15 @@
 import { readFile } from 'fs/promises';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { StableAudioRequest, StableAudioResponse } from './types.js';
+import { AudioClient, AudioClientRequest, AudioClientResponse } from './audio-clients/base.js';
 import { logger } from './logger.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export class TestAudioClient {
+export class TestAudioClient implements AudioClient {
+  readonly name = 'test-audio';
   private testAudioPath: string;
 
   constructor() {
@@ -29,7 +30,7 @@ export class TestAudioClient {
    * This simulates the Stable Audio API response but uses a local file instead.
    * The request parameters are logged but not used (since we're using a fixed test file).
    */
-  async generateAudio(request: StableAudioRequest): Promise<StableAudioResponse | null> {
+  async generateAudio(request: AudioClientRequest): Promise<AudioClientResponse | null> {
     try {
       logger.info('🧪 TEST MODE: Using local test audio file instead of Stable Audio API', {
         prompt: request.prompt.substring(0, 50) + (request.prompt.length > 50 ? '...' : ''),

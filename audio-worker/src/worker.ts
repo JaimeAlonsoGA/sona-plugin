@@ -3,10 +3,10 @@
  */
 
 import pLimit from 'p-limit';
-import { WorkerConfig, Job, ProcessingResult } from './types.js';
+import { WorkerConfig, Job, ProcessingResult, DurationPreset, DURATION_PRESETS, API_MAX_DURATION } from './types.js';
 import { logger } from './logger.js';
 import { SupabaseService } from './supabase.js';
-import { StableAudioClient } from './stable-audio.js';
+import { createAudioClient } from './audio-clients/index.js';
 import { TestAudioClient } from './test-audio.js';
 import { AudioProcessor } from './audio-processor.js';
 import { PromptEnhancerService } from './prompt-enhancer.js';
@@ -15,7 +15,6 @@ import { initializeUCSRag } from './ucs-rag.js';
 export class AudioWorker {
   private config: WorkerConfig;
   private supabase: SupabaseService;
-  private stableAudio: StableAudioClient;
   private testAudio: TestAudioClient;
   private audioProcessor: AudioProcessor;
   private promptEnhancer: PromptEnhancerService;
@@ -25,12 +24,11 @@ export class AudioWorker {
   constructor(config: WorkerConfig) {
     this.config = config;
     this.supabase = new SupabaseService(config);
-    this.stableAudio = new StableAudioClient(config);
     this.testAudio = new TestAudioClient();
     this.audioProcessor = new AudioProcessor();
     this.promptEnhancer = new PromptEnhancerService(config);
     this.limit = pLimit(config.maxConcurrentJobs);
-    
+
     logger.setLevel(config.logLevel);
 
     if (config.useTestAudio) {
@@ -155,8 +153,8 @@ export class AudioWorker {
       let musicalKey = null;
       if (job.musical_key) {
         try {
-          musicalKey = typeof job.musical_key === 'string' 
-            ? JSON.parse(job.musical_key) 
+          musicalKey = typeof job.musical_key === 'string'
+            ? JSON.parse(job.musical_key)
             : job.musical_key;
           logger.debug('Parsed musical_key', { musicalKey });
         } catch (e) {
@@ -171,7 +169,7 @@ export class AudioWorker {
           producerConfig = typeof job.producer_config === 'string'
             ? JSON.parse(job.producer_config)
             : job.producer_config;
-          logger.info('Parsed producer_config from job', { 
+          logger.info('Parsed producer_config from job', {
             raw: job.producer_config,
             parsed: producerConfig,
             bpm: producerConfig?.bpm,
@@ -185,40 +183,75 @@ export class AudioWorker {
         logger.debug('No producer_config in job', { mode: job.mode });
       }
 
-      // Step 1: Enhance the prompt with OpenAI
-      const enhancedData = await this.promptEnhancer.enhancePrompt(job.prompt, {
-        duration: job.duration,
-        quality: job.quality,
+      // Determine duration preset from actual duration
+      const durationPreset = this.getDurationPreset(job.duration);
+
+      // Calculate effective duration based on mode and API limits
+      const isDesigner = job.mode === 'designer';
+      const maxDuration = isDesigner ? API_MAX_DURATION.stableAudioOpen : API_MAX_DURATION.stableAudio2;
+      const effectiveDuration = Math.min(job.duration, maxDuration);
+
+      logger.info(`Duration calculation for job ${job.id}`, {
+        requestedDuration: job.duration,
+        effectiveDuration,
+        maxDuration,
+        durationPreset,
         mode: job.mode,
-        namingConvention: namingConvention,
-        musicalKey: musicalKey,
-        producerConfig: producerConfig,
+        isDesigner,
       });
 
-      logger.info(`Prompt enhanced for job ${job.id}`, {
+      // Step 1: Generate prompt data (with or without naming convention)
+      // The prompt enhancement (if any) was already done in the Edge Function.
+      // Here we only generate naming metadata or skip it entirely.
+      const skipNaming = job.skip_naming === true;
+      
+      const enhancedData = skipNaming
+        ? this.promptEnhancer.createSimpleResult(job.prompt, {
+            duration: effectiveDuration,
+            quality: job.quality,
+            mode: job.mode,
+            userEmail: job.user_email,
+          })
+        : await this.promptEnhancer.generateNaming(job.prompt, {
+            duration: effectiveDuration,
+            quality: job.quality,
+            mode: job.mode,
+            namingConvention: namingConvention,
+            musicalKey: musicalKey,
+            producerConfig: producerConfig,
+            durationPreset: durationPreset,
+            userEmail: job.user_email,
+          });
+
+      logger.info(`Prompt processed for job ${job.id}`, {
         filename: enhancedData.filename,
         category: enhancedData.metadata.category,
         musicalKey: musicalKey ? `${musicalKey.key} ${musicalKey.scale}` : 'none',
         enhancedPromptPreview: enhancedData.enhancedPrompt.substring(0, 100) + '...',
+        skipNaming,
       });
 
       // Step 2: Generate audio using the enhanced prompt
-      const audioClient = this.config.useTestAudio ? this.testAudio : this.stableAudio;
+      // Use factory pattern to select the appropriate audio client based on mode
+      const audioClient = this.config.useTestAudio
+        ? this.testAudio
+        : createAudioClient(job.mode, this.config);
+
       const audioResponse = await audioClient.generateAudio({
         prompt: enhancedData.enhancedPrompt, // Use enhanced prompt!
-        duration: job.duration,
+        duration: effectiveDuration,          // Use clamped duration for API
         quality: job.quality,
       });
 
       if (!audioResponse) {
         throw new Error(
-          this.config.useTestAudio 
-            ? 'Failed to load test audio file' 
-            : 'Failed to generate audio from Stable Audio API'
+          this.config.useTestAudio
+            ? 'Failed to load test audio file'
+            : `Failed to generate audio from ${audioClient.name}`
         );
       }
 
-      // Process audio (ensure WAV and create MP3)
+      // Process audio (WAV only)
       const audioFiles = await this.audioProcessor.processAudio(
         audioResponse.audio,
         audioResponse.format
@@ -228,17 +261,13 @@ export class AudioWorker {
         throw new Error('Failed to process audio files');
       }
 
-      // Validate audio
+      // Validate WAV audio
       if (!this.audioProcessor.isValidAudio(audioFiles.wav)) {
         throw new Error('Invalid WAV audio file');
       }
 
-      if (!this.audioProcessor.isValidAudio(audioFiles.mp3)) {
-        throw new Error('Invalid MP3 audio file');
-      }
-
-      // Upload both WAV and MP3 to storage
-      const result = await this.uploadAudioFiles(job.id, audioFiles.wav, audioFiles.mp3);
+      // Upload WAV to storage using UCS filename
+      const result = await this.uploadAudioFile(audioFiles.wav, enhancedData.filename);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to upload audio files');
@@ -273,48 +302,44 @@ export class AudioWorker {
   }
 
   /**
-   * Upload WAV and MP3 files to storage
+   * Upload WAV file to storage using UCS filename
+   * Both master_path and preview_path will point to the same WAV file
+   * until MP3 conversion is implemented
    */
-  private async uploadAudioFiles(
-    jobId: string,
+  private async uploadAudioFile(
     wavBuffer: Buffer,
-    mp3Buffer: Buffer
+    filename: string
   ): Promise<ProcessingResult> {
     try {
       const timestamp = Date.now();
-      const wavPath = `${this.config.storagePathPrefix}/${jobId}_${timestamp}.wav`;
-      const mp3Path = `${this.config.storagePathPrefix}/${jobId}_${timestamp}.mp3`;
+      // Sanitize filename for storage (remove special chars, keep alphanumeric, dash, underscore)
+      const sanitizedFilename = filename
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_') // collapse multiple underscores
+        .substring(0, 100); // limit length
 
-      // Upload WAV (master file)
-      logger.info('Uploading WAV file...');
-      const masterPath = await this.supabase.uploadAudio(wavPath, wavBuffer, 'audio/wav');
+      const wavPath = `${this.config.storagePathPrefix}/${sanitizedFilename}_${timestamp}.wav`;
 
-      if (!masterPath) {
+      // Upload WAV file
+      logger.info('Uploading WAV file...', { filename: sanitizedFilename });
+      const storagePath = await this.supabase.uploadAudio(wavPath, wavBuffer, 'audio/wav');
+
+      if (!storagePath) {
         return {
           success: false,
           error: 'Failed to upload WAV file',
         };
       }
 
-      // Upload MP3 (preview file)
-      logger.info('Uploading MP3 file...');
-      const previewPath = await this.supabase.uploadAudio(mp3Path, mp3Buffer, 'audio/mpeg');
-
-      if (!previewPath) {
-        return {
-          success: false,
-          error: 'Failed to upload MP3 file',
-        };
-      }
-
+      // Use same path for both master and preview until MP3 is implemented
       return {
         success: true,
-        masterPath,
-        previewPath,
+        masterPath: storagePath,
+        previewPath: storagePath,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error uploading audio files:', errorMessage);
+      logger.error('Error uploading audio file:', errorMessage);
       return {
         success: false,
         error: errorMessage,
@@ -327,5 +352,14 @@ export class AudioWorker {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Convert duration in seconds to preset category
+   */
+  private getDurationPreset(duration: number): DurationPreset {
+    if (duration <= DURATION_PRESETS.short) return 'short';
+    if (duration <= DURATION_PRESETS.medium) return 'medium';
+    return 'long';
   }
 }

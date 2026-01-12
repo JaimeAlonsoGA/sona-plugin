@@ -2,7 +2,7 @@
  * Naming Convention Types
  * 
  * System for configurable audio file naming conventions.
- * Supports both Designer (game/film audio) and Producer (music) modes.
+ * Supports Designer (game/film audio), Producer (music), and Creator (songs) modes.
  */
 
 /**
@@ -22,6 +22,12 @@ export type NamingParameterType =
   | 'bpm'           // Tempo in BPM
   | 'key'           // Musical key (C, C#, D, etc.)
   | 'scale'         // Scale type (Major, Minor)
+  // Creator mode (AES naming)
+  | 'artistPrefix'  // First 2 letters of user email (AES convention)
+  | 'songName'      // Song name extracted from prompt
+  | 'master'        // Static "Master" text for AES
+  | 'sampleRate'    // Sample rate (44k, 48k, etc.)
+  | 'bitDepth'      // Bit depth (16b, 24b, etc.)
   // Meta parameters
   | 'creator'       // Creator ID (SonaIA)
   | 'source'        // Source ID (StableAudio)
@@ -60,7 +66,7 @@ export interface NamingConvention {
   /** Whether this is a built-in preset (cannot be deleted) */
   isBuiltin: boolean
   /** The mode this convention is designed for */
-  mode: 'designer' | 'producer' | 'universal'
+  mode: 'designer' | 'producer' | 'creator' | 'universal'
 }
 
 /**
@@ -71,8 +77,12 @@ export interface NamingSettings {
   designerConventionId: string
   /** Selected convention ID for Producer mode */
   producerConventionId: string
+  /** Selected convention ID for Creator mode */
+  creatorConventionId: string
   /** User's custom conventions */
   customConventions: NamingConvention[]
+  /** Whether naming convention is enabled (false = skip GPT, faster generation) */
+  namingEnabled?: boolean
 }
 
 /**
@@ -90,6 +100,13 @@ export const DEFAULT_PARAMETERS: Record<NamingParameterType, Omit<NamingParamete
   bpm: { type: 'bpm', label: 'BPM' },
   key: { type: 'key', label: 'Key' },
   scale: { type: 'scale', label: 'Scale' },
+  // Creator mode parameters
+  artistPrefix: { type: 'artistPrefix', label: 'Artist Prefix' },
+  songName: { type: 'songName', label: 'Song Name' },
+  master: { type: 'master', label: 'Master', value: 'Master' },
+  sampleRate: { type: 'sampleRate', label: 'Sample Rate', value: '44k' },
+  bitDepth: { type: 'bitDepth', label: 'Bit Depth', value: '16b' },
+  // Meta parameters
   creator: { type: 'creator', label: 'Creator' },
   source: { type: 'source', label: 'Source' },
   date: { type: 'date', label: 'Date', format: 'YYYYMMDD' },
@@ -190,6 +207,35 @@ export const BUILTIN_CONVENTIONS: NamingConvention[] = [
       { id: 'loop-5', type: 'scale', label: 'Scale', enabled: true },
     ],
   },
+  // Creator Mode Presets
+  {
+    id: 'aes-standard',
+    name: 'AES Standard',
+    description: 'Artist_SongName_Master_44k_16b',
+    separator: '_',
+    isBuiltin: true,
+    mode: 'creator',
+    parameters: [
+      { id: 'aes-1', type: 'artistPrefix', label: 'Artist', enabled: true },
+      { id: 'aes-2', type: 'songName', label: 'Song Name', enabled: true },
+      { id: 'aes-3', type: 'master', label: 'Master', enabled: true, value: 'Master' },
+      { id: 'aes-4', type: 'sampleRate', label: 'Sample Rate', enabled: true, value: '44k' },
+      { id: 'aes-5', type: 'bitDepth', label: 'Bit Depth', enabled: true, value: '16b' },
+    ],
+  },
+  {
+    id: 'song-simple',
+    name: 'Song Simple',
+    description: 'SongName_BPM_Key',
+    separator: '_',
+    isBuiltin: true,
+    mode: 'creator',
+    parameters: [
+      { id: 'song-1', type: 'songName', label: 'Song Name', enabled: true },
+      { id: 'song-2', type: 'bpm', label: 'BPM', enabled: true },
+      { id: 'song-3', type: 'key', label: 'Key', enabled: true },
+    ],
+  },
 ]
 
 /**
@@ -198,7 +244,9 @@ export const BUILTIN_CONVENTIONS: NamingConvention[] = [
 export const DEFAULT_NAMING_SETTINGS: NamingSettings = {
   designerConventionId: 'ucs',
   producerConventionId: 'musical-full',
+  creatorConventionId: 'aes-standard',
   customConventions: [],
+  namingEnabled: true, // GPT naming enabled by default
 }
 
 /**
@@ -213,7 +261,7 @@ export function getAllConventions(settings: NamingSettings): NamingConvention[] 
  */
 export function getConventionsByMode(
   settings: NamingSettings,
-  mode: 'designer' | 'producer'
+  mode: 'designer' | 'producer' | 'creator'
 ): NamingConvention[] {
   return getAllConventions(settings).filter(
     c => c.mode === mode || c.mode === 'universal'
@@ -240,7 +288,7 @@ export function generateId(): string {
 /**
  * Create a new empty custom convention
  */
-export function createEmptyConvention(mode: 'designer' | 'producer'): NamingConvention {
+export function createEmptyConvention(mode: 'designer' | 'producer' | 'creator'): NamingConvention {
   return {
     id: generateId(),
     name: 'New Convention',
@@ -296,7 +344,9 @@ export function deserializeNamingSettings(json: string): NamingSettings {
     return {
       designerConventionId: parsed.designerConventionId || DEFAULT_NAMING_SETTINGS.designerConventionId,
       producerConventionId: parsed.producerConventionId || DEFAULT_NAMING_SETTINGS.producerConventionId,
+      creatorConventionId: parsed.creatorConventionId || DEFAULT_NAMING_SETTINGS.creatorConventionId,
       customConventions: parsed.customConventions || [],
+      namingEnabled: parsed.namingEnabled ?? DEFAULT_NAMING_SETTINGS.namingEnabled,
     }
   } catch {
     return DEFAULT_NAMING_SETTINGS

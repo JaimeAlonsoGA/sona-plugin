@@ -32,6 +32,7 @@ const defaultConfig: WaveformConfig = {
 export function useAudioPlayer(config: WaveformConfig = {}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const wavesurferRef = useRef<WaveSurfer | null>(null)
+  const isLoopingRef = useRef<boolean>(false)
   
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -76,6 +77,11 @@ export function useAudioPlayer(config: WaveformConfig = {}) {
 
     wavesurfer.on('finish', () => {
       setIsPlaying(false)
+      // Check the ref for loop state
+      if (isLoopingRef.current) {
+        wavesurfer.seekTo(0)
+        wavesurfer.play()
+      }
     })
 
     wavesurfer.on('play', () => setIsPlaying(true))
@@ -139,6 +145,10 @@ export function useAudioPlayer(config: WaveformConfig = {}) {
     }
   }, [currentTime, duration])
 
+  const setLoop = useCallback((loop: boolean) => {
+    isLoopingRef.current = loop
+  }, [])
+
   return {
     containerRef,
     isPlaying,
@@ -155,6 +165,7 @@ export function useAudioPlayer(config: WaveformConfig = {}) {
     seekToPercent,
     setVolume,
     skip,
+    setLoop,
     progress: duration > 0 ? (currentTime / duration) * 100 : 0,
   }
 }

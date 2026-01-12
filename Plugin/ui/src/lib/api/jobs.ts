@@ -25,8 +25,8 @@ export async function submitJob(input: CreateJobInput): Promise<GenerateJobRespo
     throw new Error('Prompt must be 500 characters or less')
   }
   
-  if (input.duration !== undefined && (input.duration < 1 || input.duration > 60)) {
-    throw new Error('Duration must be between 1 and 60 seconds')
+  if (input.duration !== undefined && input.duration !== null && (input.duration < 1 || input.duration > 180)) {
+    throw new Error('Duration must be between 1 and 180 seconds')
   }
 
   // Get fresh session - this will auto-refresh if expired

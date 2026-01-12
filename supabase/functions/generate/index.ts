@@ -23,7 +23,7 @@ const corsHeaders = {
 // ============================================
 const TOKEN_COSTS = {
   BASE_COST: 20,
-  DURATION: { 3: 0, 10: 0, 30: 5, 60: 10 } as Record<number, number>,
+  DURATION: { 3: 0, 10: 0, 30: 5, 60: 10, 120: 15, 180: 20 } as Record<number, number>,
   QUALITY: { low: 0, medium: 0, high: 10 } as Record<string, number>,
 }
 
@@ -31,11 +31,11 @@ const TOKEN_COSTS = {
  * Find the closest duration tier for cost calculation
  */
 function findClosestDurationTier(duration: number): number {
-  const tiers = [3, 10, 30, 60]
+  const tiers = [3, 10, 30, 60, 120, 180]
   for (const tier of tiers) {
     if (duration <= tier) return tier
   }
-  return 60
+  return 180
 }
 
 /**
@@ -66,9 +66,9 @@ function generateCostDescription(duration: number, quality: string, prompt: stri
 // Input validation schema
 interface GenerateRequest {
   prompt: string
-  duration?: number
+  duration?: number | null  // null means unspecified/auto (defaults to 10s)
   quality?: 'low' | 'medium' | 'high'
-  mode?: 'designer' | 'producer'
+  mode?: 'designer' | 'producer' | 'creator'
   namingConvention?: {
     parameters: Array<{
       type: string
@@ -77,6 +77,8 @@ interface GenerateRequest {
     }>
     separator: string
   }
+  // Skip GPT naming convention for faster processing
+  skipNaming?: boolean
   // Musical key parameters
   key?: string  // e.g., 'C', 'C#', 'D', etc.
   scale?: 'major' | 'minor'
@@ -84,6 +86,9 @@ interface GenerateRequest {
   bpm?: number
   timeSignature?: string  // e.g., '4/4'
   bars?: number
+  producerType?: 'song' | 'loop' | 'one-shot'
+  // Creator mode parameters
+  userEmail?: string  // For AES naming convention
 }
 
 interface JobRecord {
@@ -97,7 +102,11 @@ interface JobRecord {
   // Musical key (stored as JSON for flexibility)
   musical_key?: string  // JSON: { key: string, scale: string }
   // Producer metadata
-  producer_config?: string  // JSON: { bpm, timeSignature, bars }
+  producer_config?: string  // JSON: { type, bpm, timeSignature, bars }
+  // Creator mode
+  user_email?: string
+  // Skip naming convention generation
+  skip_naming?: boolean
   created_at?: string
 }
 
@@ -116,12 +125,12 @@ function validateInput(body: GenerateRequest): { valid: boolean; errors: string[
     errors.push('Prompt must be 500 characters or less')
   }
 
-  // Validate duration (optional, default to 10 seconds)
-  if (body.duration !== undefined) {
+  // Validate duration (optional, default to 10 seconds if null or undefined)
+  if (body.duration !== undefined && body.duration !== null) {
     if (typeof body.duration !== 'number') {
-      errors.push('Duration must be a number')
-    } else if (body.duration < 1 || body.duration > 60) {
-      errors.push('Duration must be between 1 and 60 seconds')
+      errors.push('Duration must be a number or null')
+    } else if (body.duration < 1 || body.duration > 180) {
+      errors.push('Duration must be between 1 and 180 seconds (3 minutes)')
     }
   }
 
@@ -354,14 +363,23 @@ serve(async (req: Request) => {
       mode: body.mode ?? 'designer',
       status: 'queued',
       naming_convention: body.namingConvention ? JSON.stringify(body.namingConvention) : undefined,
+      // Skip naming convention generation for faster processing
+      skip_naming: body.skipNaming ?? false,
       // Store musical key if provided (check for key existence, not truthiness)
       musical_key: body.key !== undefined && body.key !== null
         ? JSON.stringify({ key: body.key, scale: body.scale || 'major' }) 
         : undefined,
-      // Store producer config if in producer mode (check bpm with !== undefined)
-      producer_config: body.mode === 'producer' && body.bpm !== undefined && body.bpm !== null
-        ? JSON.stringify({ bpm: body.bpm, timeSignature: body.timeSignature || '4/4', bars: body.bars || 4 })
+      // Store producer config if in producer or creator mode
+      producer_config: (body.mode === 'producer' || body.mode === 'creator') && body.bpm !== undefined && body.bpm !== null
+        ? JSON.stringify({ 
+            type: body.producerType || (body.mode === 'creator' ? 'song' : 'loop'),
+            bpm: body.bpm, 
+            timeSignature: body.timeSignature || '4/4', 
+            bars: body.bars || 4 
+          })
         : undefined,
+      // Store user email for Creator mode naming convention
+      user_email: body.mode === 'creator' ? body.userEmail : undefined,
     }
 
     // Log job creation with all parameters - more detailed
@@ -378,9 +396,11 @@ serve(async (req: Request) => {
       rawBpm: body.bpm,
       rawTimeSignature: body.timeSignature,
       rawBars: body.bars,
+      rawUserEmail: body.userEmail ? '***@***' : undefined,
       // What we're storing
       musical_key: jobData.musical_key,
       producer_config: jobData.producer_config,
+      user_email: jobData.user_email ? '***@***' : undefined,
     })
 
     const { data: job, error: dbError } = await supabaseAdmin

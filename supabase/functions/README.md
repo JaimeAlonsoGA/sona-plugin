@@ -30,7 +30,7 @@ Edge Functions handle user requests from the React frontend and JUCE plugin. The
 
 **Parameters:**
 - `prompt` (required, string): Text description of the audio to generate (max 500 characters)
-- `duration` (optional, number): Duration in seconds (1-60, default: 10)
+- `duration` (optional, number): Duration in seconds (1-180, default: 10)
 - `quality` (optional, string): Quality level - "low", "medium", or "high" (default: "medium")
 - `mode` (optional, string): Generation mode (default: "default")
 

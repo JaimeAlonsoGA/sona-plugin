@@ -134,6 +134,31 @@ export default function ProfilePage() {
             </div>
           </Card>
 
+          {/* Prompting Guide Link */}
+          <Card
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            interactive
+            onClick={() => navigate(ROUTES.PROMPTING)}
+            className="cursor-pointer group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[var(--sona-ember)]/10 rounded-xl flex items-center justify-center">
+                  <span className="text-lg">💡</span>
+                </div>
+                <div>
+                  <p className="text-[var(--sona-text)] font-medium">Prompting Guide</p>
+                  <p className="text-[var(--sona-text-muted)] text-sm">
+                    Learn Stable Audio 2.5 tips
+                  </p>
+                </div>
+              </div>
+              <ChevronRightIcon size={18} className="text-[var(--sona-text-subtle)] group-hover:text-[var(--sona-ember)] transition-colors" />
+            </div>
+          </Card>
+
           {/* Naming Convention Settings */}
           <NamingSettings />
 

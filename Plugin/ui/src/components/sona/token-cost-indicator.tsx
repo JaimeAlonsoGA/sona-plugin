@@ -8,23 +8,27 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { getCostBreakdown, type GenerationCostParams } from '../../lib/token-costs'
 import { useUserTokens } from '../../lib/hooks'
+import type { QualityLevel } from './generation-settings'
 
 interface TokenCostIndicatorProps {
     /** Duration in seconds */
     duration: number
-    /** Quality level */
-    quality: 'standard' | 'high'
+    /** Quality level (draft, standard, high) */
+    quality: QualityLevel
     /** Current mode for styling */
-    mode: 'designer' | 'producer'
+    mode: 'designer' | 'producer' | 'creator'
     /** Compact mode for smaller displays */
     compact?: boolean
 }
 
 /**
  * Maps UI quality to cost calculation quality
+ * draft -> standard (same cost tier)
+ * standard -> standard
+ * high -> high
  */
-function mapQuality(quality: 'standard' | 'high'): 'standard' | 'high' {
-    return quality
+function mapQuality(quality: QualityLevel): 'standard' | 'high' {
+    return quality === 'high' ? 'high' : 'standard'
 }
 
 export function TokenCostIndicator({
@@ -156,7 +160,7 @@ function TokenIcon({ color, size = 30 }: { color: string; size?: number }) {
                 cx="24"
                 cy="24"
                 r="22"
-                stroke="var(--sona-gold)"
+                stroke={color}
                 strokeWidth="2"
                 strokeOpacity="0.3"
                 strokeDasharray="4 4"
@@ -166,13 +170,13 @@ function TokenIcon({ color, size = 30 }: { color: string; size?: number }) {
                 cx="24"
                 cy="24"
                 r="16"
-                stroke="var(--sona-gold)"
+                stroke={color}
                 strokeWidth="2"
             />
             {/* Center symbol */}
             <path
                 d="M24 14v20M18 20l6-6 6 6M18 28l6 6 6-6"
-                stroke="var(--sona-gold)"
+                stroke={color}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"

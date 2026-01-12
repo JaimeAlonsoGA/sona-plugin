@@ -19,7 +19,7 @@
   /* Plugin dimensions */
   --plugin-width: 800px;
   --plugin-height: 600px;
-  
+
   /* Sona Color Palette - Soft, warm, nurturing */
   --sona-void: #0a0a0a;
   --sona-deep: #111111;
@@ -27,66 +27,75 @@
   --sona-elevated: #1c1c1c;
   --sona-border: #252525;
   --sona-muted: #333333;
-  
+
   /* Primary - Warm terracotta, feminine warmth */
   --sona-ember: #D4856A;
   --sona-ember-glow: rgba(212, 133, 106, 0.12);
   --sona-ember-soft: rgba(212, 133, 106, 0.08);
-  
+
   /* Secondary - Soft gold, creative spark */
   --sona-gold: #E8D5A3;
   --sona-gold-glow: rgba(232, 213, 163, 0.15);
-  
+
   /* Accent - Sage green, growth and fertility */
   --sona-sage: #7BA38E;
   --sona-sage-soft: rgba(123, 163, 142, 0.12);
-  
+
   /* Designer Mode - Cool teal/cyan for technical precision */
   --sona-designer: #6BA3B5;
   --sona-designer-soft: rgba(107, 163, 181, 0.12);
   --sona-designer-glow: rgba(107, 163, 181, 0.25);
-  
+
   /* Producer Mode - Warm amber/gold for creative flow */
   --sona-producer: #D4A56A;
   --sona-producer-soft: rgba(212, 165, 106, 0.12);
   --sona-producer-glow: rgba(212, 165, 106, 0.25);
-  
+
+  /* Creator Mode - Rich violet/purple for artistic expression */
+  --sona-creator: #A56BD4;
+  --sona-creator-soft: rgba(165, 107, 212, 0.12);
+  --sona-creator-glow: rgba(165, 107, 212, 0.25);
+
   /* Text - Warm cream */
   --sona-cream: #F5F2E8;
   --sona-text: var(--sona-cream);
   --sona-text-muted: rgba(245, 242, 232, 0.55);
   --sona-text-subtle: rgba(245, 242, 232, 0.35);
-  
+
   /* Gradients - Organic, flowing */
   --gradient-warm: linear-gradient(135deg, var(--sona-ember) 0%, #B86E55 100%);
   --gradient-creative: linear-gradient(135deg, var(--sona-gold) 0%, var(--sona-ember) 100%);
   --gradient-ambient: radial-gradient(ellipse at 50% 0%, var(--sona-ember-glow) 0%, transparent 50%);
-  
+
   /* Animation - Gentle, organic */
   --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-breath: cubic-bezier(0.37, 0, 0.63, 1);
 }
 
-html, body {
+html,
+body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: var(--sona-void);
   color: var(--sona-text);
-  overflow: hidden;
-  width: var(--plugin-width);
-  height: var(--plugin-height);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
 
-#root {
+/* Display font for landing page headings */
+.font-display {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* Plugin-specific dimensions (only for plugin pages, not landing) */
+.plugin-container {
   width: var(--plugin-width);
   height: var(--plugin-height);
   overflow: hidden;
   background: var(--sona-void);
 }
 
-/* Page base - clean, minimal */
+/* Page base for plugin - clean, minimal */
 .page {
   width: 100%;
   height: var(--plugin-height);
@@ -112,7 +121,7 @@ html, body {
   z-index: 0;
 }
 
-.page > * {
+.page>* {
   position: relative;
   z-index: 1;
 }
@@ -174,11 +183,9 @@ html, body {
 
 /* Glass card - For special elements */
 .sona-glass {
-  background: linear-gradient(
-    180deg,
-    rgba(28, 28, 28, 0.9) 0%,
-    rgba(22, 22, 22, 0.95) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(28, 28, 28, 0.9) 0%,
+      rgba(22, 22, 22, 0.95) 100%);
   border: 1px solid var(--sona-border);
   border-radius: 20px;
   backdrop-filter: blur(8px);
@@ -373,19 +380,25 @@ html, body {
    ============================================ */
 
 @keyframes sona-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 0.9;
   }
 }
 
 @keyframes sona-breathe {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.6;
   }
+
   50% {
     transform: scale(1.01);
     opacity: 0.85;
@@ -396,6 +409,7 @@ html, body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -405,9 +419,11 @@ html, body {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -530,6 +546,7 @@ html, body {
     --chart-5: 27 87% 67%;
     --radius: 0.75rem;
   }
+
   .dark {
     /* Sona dark theme - matching our design system */
     --background: 0 0% 4%;

@@ -11,14 +11,14 @@ import { supabase } from './lib/supabase'
  * Generate audio job by calling the Edge Function
  * 
  * @param prompt - Text description for audio generation
- * @param duration - Duration in seconds (1-60)
+ * @param duration - Duration in seconds (1-180, or null for auto)
  * @param quality - Quality level
  * @param mode - Generation mode
  * @returns Promise with job data
  */
 export async function createAudioJob(
   prompt: string,
-  duration: number = 10,
+  duration: number | null = 10,
   quality: 'low' | 'medium' | 'high' = 'medium',
   mode: string = 'default'
 ) {
@@ -66,7 +66,7 @@ export function useCreateAudioJob() {
       mode 
     }: {
       prompt: string
-      duration?: number
+      duration?: number | null
       quality?: 'low' | 'medium' | 'high'
       mode?: string
     }) => createAudioJob(prompt, duration, quality, mode),

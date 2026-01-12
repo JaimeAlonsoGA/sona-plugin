@@ -190,6 +190,8 @@ export function useUpdateNamingSettings() {
     mutationFn: (settings: {
       designerConventionId?: string
       producerConventionId?: string
+      creatorConventionId?: string
+      namingEnabled?: boolean
     }) => updateUserNamingSettings(settings),
     onMutate: async (newSettings) => {
       // Cancel any outgoing refetches
@@ -199,17 +201,23 @@ export function useUpdateNamingSettings() {
       const previousSettings = queryClient.getQueryData<{
         designerConventionId: string
         producerConventionId: string
+        creatorConventionId?: string
+        namingEnabled?: boolean
       } | null>(namingQueryKeys.settings())
       
       // Optimistically update
       queryClient.setQueryData<{
         designerConventionId: string
         producerConventionId: string
+        creatorConventionId?: string
+        namingEnabled?: boolean
       } | null>(
         namingQueryKeys.settings(),
         (old) => ({
           designerConventionId: newSettings.designerConventionId ?? old?.designerConventionId ?? 'ucs',
           producerConventionId: newSettings.producerConventionId ?? old?.producerConventionId ?? 'musical-full',
+          creatorConventionId: newSettings.creatorConventionId ?? old?.creatorConventionId ?? 'musical-full',
+          namingEnabled: newSettings.namingEnabled ?? old?.namingEnabled ?? true,
         })
       )
       

@@ -32,7 +32,7 @@ This document summarizes the implementation of Supabase Edge Functions for the S
 
 **Input Validation:**
 - **prompt** (required): String, 1-500 characters, non-empty
-- **duration** (optional): Number, 1-60 seconds, default: 10
+- **duration** (optional): Number, 1-180 seconds (3 minutes), default: 10
 - **quality** (optional): Enum ('low', 'medium', 'high'), default: 'medium'
 - **mode** (optional): String, default: 'default'
 
@@ -71,7 +71,7 @@ This document summarizes the implementation of Supabase Edge Functions for the S
 - id: UUID (primary key)
 - user_id: UUID (references auth.users)
 - prompt: TEXT
-- duration: INTEGER (1-60)
+- duration: INTEGER (1-180)
 - quality: TEXT ('low', 'medium', 'high')
 - mode: TEXT
 - status: TEXT ('pending', 'processing', 'completed', 'failed')

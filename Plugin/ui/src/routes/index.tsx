@@ -11,12 +11,16 @@ import { WelcomeModal } from '../components/WelcomeModal'
 import { CommandPalette } from '../components/CommandPalette'
 
 // Lazy load pages for better performance
+const LandingPage = lazy(() => import('../pages/landing'))
 const SonaPage = lazy(() => import('../pages/sona'))
 const AuthPage = lazy(() => import('../pages/auth'))
 const ProfilePage = lazy(() => import('../pages/profile'))
 const SoundsPage = lazy(() => import('../pages/sounds'))
 const BillingPage = lazy(() => import('../pages/billing'))
 const CheckoutPage = lazy(() => import('../pages/checkout'))
+const FeedbackPage = lazy(() => import('../pages/feedback'))
+const PromptingGuidePage = lazy(() => import('../pages/prompting'))
+const AboutPage = lazy(() => import('../pages/about'))
 
 // Loading fallback component
 const PageLoader = () => (
@@ -46,6 +50,15 @@ const RootLayout = () => {
   )
 }
 
+// Plugin layout wrapper - applies fixed dimensions for plugin pages
+const PluginLayout = () => {
+  return (
+    <div className="plugin-container">
+      <Outlet />
+    </div>
+  )
+}
+
 // Protected route wrapper - requires authentication
 const ProtectedRoute = () => {
   const { data: session, isLoading } = useSession()
@@ -58,7 +71,7 @@ const ProtectedRoute = () => {
     return <Navigate to="/auth" replace />
   }
 
-  return <Outlet />
+  return <PluginLayout />
 }
 
 // Public route wrapper - redirects to home if already authenticated
@@ -81,6 +94,42 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
+      // Public landing page (always accessible)
+      {
+        path: '/landing',
+        element: (
+          <SuspenseWrapper>
+            <LandingPage />
+          </SuspenseWrapper>
+        ),
+      },
+
+      // Public info pages (always accessible)
+      {
+        path: '/prompting',
+        element: (
+          <SuspenseWrapper>
+            <PromptingGuidePage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/about',
+        element: (
+          <SuspenseWrapper>
+            <AboutPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: '/form',
+        element: (
+          <SuspenseWrapper>
+            <FeedbackPage />
+          </SuspenseWrapper>
+        ),
+      },
+
       // Public routes (redirect to home if authenticated)
       {
         element: <PublicRoute />,
@@ -95,7 +144,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-      
+
       // Protected routes (require authentication)
       {
         element: <ProtectedRoute />,
@@ -144,11 +193,11 @@ const router = createBrowserRouter([
       },
     ],
   },
-  
-  // Catch-all redirect
+
+  // Catch-all redirect to landing
   {
     path: '*',
-    element: <Navigate to="/" replace />,
+    element: <Navigate to="/landing" replace />,
   },
 ])
 
@@ -159,12 +208,16 @@ export const AppRouter = () => {
 
 // Route paths enum for type-safe navigation
 export const ROUTES = {
+  LANDING: '/landing',
   HOME: '/',
   AUTH: '/auth',
   PROFILE: '/profile',
   SOUNDS: '/sounds',
   BILLING: '/billing',
   CHECKOUT: '/billing/checkout',
+  FORM: '/form',
+  PROMPTING: '/prompting',
+  ABOUT: '/about',
 } as const
 
 export type RoutePath = typeof ROUTES[keyof typeof ROUTES]

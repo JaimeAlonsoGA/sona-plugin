@@ -12,6 +12,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Repeat, Volume2, VolumeX, Volume1 } from 'lucide-react'
 import { useAudioPlayer } from '../../hooks/use-audio-player'
 import { formatTime } from '../../lib/formatters'
 import { downloadAudio } from '../../lib/audio'
@@ -22,8 +23,6 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
   DownloadIcon,
-  VolumeIcon,
-  LoopIcon,
   CopyIcon,
   CheckIcon,
 } from '../shared/icons'
@@ -53,6 +52,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
     toggle,
     skip,
     setVolume: setPlayerVolume,
+    setLoop,
     seekToPercent,
   } = useAudioPlayer({
     waveColor: 'rgba(123, 163, 142, 0.35)',
@@ -79,9 +79,8 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
 
   // Handle loop
   useEffect(() => {
-    // Loop functionality would need to be added to useAudioPlayer
-    // For now, we'll handle it via the finish event in the parent
-  }, [isLooping])
+    setLoop(isLooping)
+  }, [isLooping, setLoop])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -262,7 +261,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
         {/* Left: Loop & Volume */}
         <div className="flex items-center gap-1">
           <IconButton
-            icon={<LoopIcon size={14} />}
+            icon={<Repeat size={14} />}
             onClick={() => setIsLooping(!isLooping)}
             disabled={!audioUrl}
             variant={isLooping ? 'sage' : 'ghost'}
@@ -270,12 +269,16 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
             label="Loop (L)"
           />
           <div 
-            className="relative flex items-center"
+            className="relative flex items-start"
             onMouseEnter={handleVolumeMouseEnter}
             onMouseLeave={handleVolumeMouseLeave}
           >
             <IconButton
-              icon={<VolumeIcon size={14} level={getVolumeLevel()} />}
+              icon={
+                getVolumeLevel() === 'mute' ? <VolumeX size={14} /> :
+                getVolumeLevel() === 'low' ? <Volume1 size={14} /> :
+                <Volume2 size={14} />
+              }
               onClick={() => setIsMuted(!isMuted)}
               disabled={!audioUrl}
               size="sm"
@@ -287,7 +290,7 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: 60 }}
                   exit={{ opacity: 0, width: 0 }}
-                  className="ml-1 overflow-hidden"
+                  className="absolute left-6 ml-1 overflow-hidden"
                 >
                   <input
                     type="range"

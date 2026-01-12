@@ -53,6 +53,10 @@ enable_confirmations = false
 # This allows more flexibility and better error messages
 verify_jwt = false
 
+[functions.enhance-prompt]
+# Disable gateway JWT verification - we handle auth in the function itself
+verify_jwt = false
+
 [functions.stripe-checkout]
 # Disable gateway JWT verification - we handle auth in the function itself
 verify_jwt = false

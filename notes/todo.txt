@@ -20,3 +20,18 @@ Implementar sistema de Pay per usage
 
 
 Crear timeline de progreso con recompensas para capturar usuarios en el tiempo (game-pass concept) 
+
+
+Opción de controlar caracter de SONA. (ej.: creativa, inspirada, retro)
+
+
+Configurar quien es el artist y el source
+
+
+Crear tiers
+
+
+Pensar futuro de plugin o creación de otro plugin, con implementación de nuevos modelos como audio to video o text to speech.
+
+
+Modo libre, poder elegir el modelo que quieras y escribir en el prompt lo que quieras

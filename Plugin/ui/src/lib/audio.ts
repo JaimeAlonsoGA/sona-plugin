@@ -37,7 +37,16 @@ export async function copyAudioUrl(url: string): Promise<void> {
 
 /**
  * Get quality API value from UI quality level
+ * Maps 3 UI levels to API quality values:
+ * - draft -> low (50 steps)
+ * - standard -> medium (100 steps)
+ * - high -> high (150 steps)
  */
-export function getApiQuality(quality: 'standard' | 'high'): 'low' | 'medium' | 'high' {
-  return quality === 'high' ? 'high' : 'medium'
+export function getApiQuality(quality: 'draft' | 'standard' | 'high'): 'low' | 'medium' | 'high' {
+  switch (quality) {
+    case 'draft': return 'low'
+    case 'standard': return 'medium'
+    case 'high': return 'high'
+    default: return 'medium'
+  }
 }

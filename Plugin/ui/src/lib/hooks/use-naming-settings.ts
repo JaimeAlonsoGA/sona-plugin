@@ -87,6 +87,8 @@ export function useNamingSettings() {
       setLocalSettings({
         designerConventionId: namingData.settings?.designerConventionId ?? DEFAULT_NAMING_SETTINGS.designerConventionId,
         producerConventionId: namingData.settings?.producerConventionId ?? DEFAULT_NAMING_SETTINGS.producerConventionId,
+        creatorConventionId: namingData.settings?.creatorConventionId ?? DEFAULT_NAMING_SETTINGS.creatorConventionId,
+        namingEnabled: namingData.settings?.namingEnabled ?? DEFAULT_NAMING_SETTINGS.namingEnabled,
         customConventions: namingData.conventions || [],
       })
       setIsLoadedLocal(true)
@@ -168,8 +170,12 @@ export function useNamingSettings() {
   const error = syncError || supabaseError
 
   // Ensure there's always a valid convention selected
-  const ensureValidSelection = useCallback((currentSettings: NamingSettings, mode: 'designer' | 'producer'): string => {
-    const currentId = mode === 'designer' ? currentSettings.designerConventionId : currentSettings.producerConventionId
+  const ensureValidSelection = useCallback((currentSettings: NamingSettings, mode: 'designer' | 'producer' | 'creator'): string => {
+    const currentId = mode === 'designer' 
+      ? currentSettings.designerConventionId 
+      : mode === 'producer'
+        ? currentSettings.producerConventionId
+        : currentSettings.creatorConventionId
     const allConventions = [...BUILTIN_CONVENTIONS, ...currentSettings.customConventions]
     const modeConventions = allConventions.filter(c => c.mode === mode || c.mode === 'universal')
     
@@ -178,7 +184,11 @@ export function useNamingSettings() {
     if (isValid) return currentId
     
     // Fall back to default
-    const defaultId = mode === 'designer' ? DEFAULT_NAMING_SETTINGS.designerConventionId : DEFAULT_NAMING_SETTINGS.producerConventionId
+    const defaultId = mode === 'designer' 
+      ? DEFAULT_NAMING_SETTINGS.designerConventionId 
+      : mode === 'producer'
+        ? DEFAULT_NAMING_SETTINGS.producerConventionId
+        : DEFAULT_NAMING_SETTINGS.creatorConventionId
     if (modeConventions.some(c => c.id === defaultId)) return defaultId
     
     // Fall back to first available
@@ -187,7 +197,7 @@ export function useNamingSettings() {
 
   // Get the active convention for a mode
   const getActiveConvention = useCallback(
-    (mode: 'designer' | 'producer'): NamingConvention => {
+    (mode: 'designer' | 'producer' | 'creator'): NamingConvention => {
       const id = ensureValidSelection(settings, mode)
       const convention = getConventionById(settings, id)
       // Should always find one due to ensureValidSelection, but fallback just in case
@@ -198,7 +208,7 @@ export function useNamingSettings() {
 
   // Get all conventions for a mode
   const getConventionsForMode = useCallback(
-    (mode: 'designer' | 'producer'): NamingConvention[] => {
+    (mode: 'designer' | 'producer' | 'creator'): NamingConvention[] => {
       return getConventionsByMode(settings, mode)
     },
     [settings]
@@ -206,16 +216,40 @@ export function useNamingSettings() {
 
   // Set the active convention for a mode (local only, syncs on save)
   const setActiveConvention = useCallback(
-    (mode: 'designer' | 'producer', conventionId: string) => {
+    (mode: 'designer' | 'producer' | 'creator', conventionId: string) => {
+      const settingsKey = mode === 'designer' 
+        ? 'designerConventionId' 
+        : mode === 'producer'
+          ? 'producerConventionId'
+          : 'creatorConventionId'
+      
       setLocalSettings(prev => ({
         ...prev,
-        [mode === 'designer' ? 'designerConventionId' : 'producerConventionId']: conventionId,
+        [settingsKey]: conventionId,
       }))
       
       // Sync settings immediately for convention selection (it's a quick operation)
       if (isAuthenticated) {
         settingsMutation.mutate({
-          [mode === 'designer' ? 'designerConventionId' : 'producerConventionId']: conventionId,
+          [settingsKey]: conventionId,
+        })
+      }
+    },
+    [isAuthenticated, settingsMutation]
+  )
+
+  // Toggle naming convention on/off (syncs immediately)
+  const setNamingEnabled = useCallback(
+    (enabled: boolean) => {
+      setLocalSettings(prev => ({
+        ...prev,
+        namingEnabled: enabled,
+      }))
+      
+      // Sync settings immediately
+      if (isAuthenticated) {
+        settingsMutation.mutate({
+          namingEnabled: enabled,
         })
       }
     },
@@ -224,7 +258,7 @@ export function useNamingSettings() {
 
   // Start editing a new convention (local only until saved)
   const addConvention = useCallback(
-    (mode: 'designer' | 'producer'): NamingConvention => {
+    (mode: 'designer' | 'producer' | 'creator'): NamingConvention => {
       const newConvention = createEmptyConvention(mode)
       
       setPendingChanges({
@@ -574,6 +608,7 @@ export function useNamingSettings() {
     getActiveConvention,
     getConventionsForMode,
     setActiveConvention,
+    setNamingEnabled,
     addConvention,
     duplicateConvention,
     startEditing,
