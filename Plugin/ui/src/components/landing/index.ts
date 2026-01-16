@@ -16,5 +16,3 @@ export { LandingFooter } from './landing-footer'
 // Beta Components
 export { BetaModal } from './beta-modal'
 
-// Legacy/Utility components
-export { FAQ } from './faq'

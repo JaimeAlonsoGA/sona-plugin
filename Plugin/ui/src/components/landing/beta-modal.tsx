@@ -194,7 +194,7 @@ export function BetaModal({ isOpen, onClose }: BetaModalProps) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-landing-bg-light dark:bg-landing-bg-dark border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden"
+          className="z-50 relative w-full max-w-lg bg-landing-bg-light dark:bg-landing-bg-dark border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
@@ -221,7 +221,7 @@ export function BetaModal({ isOpen, onClose }: BetaModalProps) {
           </div>
 
           {/* Content */}
-          <div className="px-8 py-6 max-h-[60vh] overflow-y-auto">
+          <div className="px-8 py-6 max-h-[65vh] overflow-y-auto">
             <AnimatePresence mode="wait">
               {/* Auth Step */}
               {step === 'auth' && (

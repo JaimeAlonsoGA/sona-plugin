@@ -8,22 +8,76 @@
 import { LandingFooter } from "@/components/landing/landing-footer"
 import { LandingNav } from "@/components/landing/landing-nav"
 import { VersionBadge } from "@/components/shared/version-badge"
-import { Download, CheckCircle, Monitor, Cpu, HardDrive, ChevronRight } from 'lucide-react'
+import { Download, CheckCircle, Monitor, Cpu, HardDrive, ChevronRight, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from "react-router-dom"
 
 type Platform = 'windows' | 'mac'
 type Format = 'vst3' | 'standalone' | 'all'
 
+// Supabase Storage base URL for releases
+const RELEASES_BASE_URL = 'https://ucxhzpxyjxuhlqmbomrv.supabase.co/storage/v1/object/public/releases';
+
+// Download URLs for each platform and format
+const DOWNLOAD_URLS: Record<Platform, Record<Format, string>> = {
+    windows: {
+        all: `${RELEASES_BASE_URL}/windows/Sona-Windows-Bundle.zip`,
+        vst3: `${RELEASES_BASE_URL}/windows/Sona-Windows-VST3.zip`,
+        standalone: `${RELEASES_BASE_URL}/windows/Sona-Windows-Standalone.zip`
+    },
+    mac: {
+        all: `${RELEASES_BASE_URL}/mac/Sona-macOS-Bundle.zip`,
+        vst3: `${RELEASES_BASE_URL}/mac/Sona-macOS-VST3.zip`,
+        standalone: `${RELEASES_BASE_URL}/mac/Sona-macOS-Standalone.zip`
+    }
+};
+
+// File sizes for display
+const FILE_SIZES: Record<Platform, Record<Format, string>> = {
+    windows: {
+        all: '~6 MB',
+        vst3: '~3 MB',
+        standalone: '~3 MB'
+    },
+    mac: {
+        all: 'Coming Soon',
+        vst3: 'Coming Soon',
+        standalone: 'Coming Soon'
+    }
+};
+
 export default function DownloadPage() {
     const [selectedPlatform, setSelectedPlatform] = useState<Platform>('windows')
     const [selectedFormat, setSelectedFormat] = useState<Format>('all')
+    const [isDownloading, setIsDownloading] = useState(false)
 
-    const handleDownload = () => {
-        // TODO: Implement actual download logic
-        console.log(`Downloading ${selectedFormat} for ${selectedPlatform}`)
-        // Example: window.location.href = `/downloads/sona-${selectedPlatform}-${selectedFormat}.zip`
+    const handleDownload = async () => {
+        if (selectedPlatform === 'mac') {
+            alert('macOS version coming soon! Stay tuned.');
+            return;
+        }
+
+        setIsDownloading(true);
+        
+        try {
+            const downloadUrl = DOWNLOAD_URLS[selectedPlatform][selectedFormat];
+            
+            // Create a temporary anchor element to trigger download
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = ''; // Let the browser use the filename from the URL
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Download failed. Please try again or contact support.');
+        } finally {
+            setTimeout(() => setIsDownloading(false), 1500);
+        }
     }
+
+    const isMacSelected = selectedPlatform === 'mac';
 
     return (
         <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark transition-colors duration-300">
@@ -141,15 +195,32 @@ export default function DownloadPage() {
                             {/* Download Button */}
                             <button
                                 onClick={handleDownload}
-                                className="w-full bg-primary text-white px-8 py-5 rounded-2xl text-lg font-medium hover:bg-amber-700 transition-all shadow-xl shadow-primary/25 flex items-center justify-center gap-3 group mb-6"
+                                disabled={isDownloading || isMacSelected}
+                                className={`w-full px-8 py-5 rounded-2xl text-lg font-medium transition-all shadow-xl flex items-center justify-center gap-3 group mb-6 ${
+                                    isMacSelected 
+                                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed shadow-none'
+                                        : 'bg-primary text-white hover:bg-amber-700 shadow-primary/25'
+                                } ${isDownloading ? 'opacity-75 cursor-wait' : ''}`}
                             >
-                                <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />
-                                Download SONA for {selectedPlatform === 'windows' ? 'Windows' : 'macOS'}
+                                {isDownloading ? (
+                                    <>
+                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        Starting Download...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />
+                                        {isMacSelected 
+                                            ? 'macOS Coming Soon' 
+                                            : `Download SONA for ${selectedPlatform === 'windows' ? 'Windows' : 'macOS'}`
+                                        }
+                                    </>
+                                )}
                             </button>
 
                             {/* File Info */}
                             <p className="text-center text-sm text-landing-subtext-light dark:text-landing-subtext-dark">
-                                Size: ~145 MB • Format: {selectedFormat === 'all' ? 'VST3 + Standalone' : selectedFormat.toUpperCase()}
+                                Size: {FILE_SIZES[selectedPlatform][selectedFormat]} • Format: {selectedFormat === 'all' ? 'VST3 + Standalone' : selectedFormat.toUpperCase()}
                             </p>
                         </div>
 
