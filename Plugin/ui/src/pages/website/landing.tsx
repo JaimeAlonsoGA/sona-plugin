@@ -60,7 +60,7 @@ export default function LandingPage() {
       <div className="grain-overlay mix-blend-overlay dark:mix-blend-overlay" />
 
       {/* Navigation */}
-      <LandingNav onDownload={handleCTA} />
+      <LandingNav />
 
       {/* Main Content */}
       <main>
