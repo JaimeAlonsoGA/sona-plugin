@@ -7,16 +7,19 @@
 
 import { useState, useEffect } from 'react'
 import { Menu, X, LogOut, Clock, CheckCircle, XCircle, FileText } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useSession, useSignOut } from '../../lib/hooks'
 import { useBetaStatus } from '../../lib/hooks/use-beta'
 import { WEBSITE_ROUTES } from '@/routes'
+import { BetaModal } from './beta-modal'
 
 interface LandingNavProps {
   onDownload?: () => void
 }
 
 export function LandingNav({ onDownload }: LandingNavProps) {
+  const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
+  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -155,7 +158,15 @@ export function LandingNav({ onDownload }: LandingNavProps) {
               </div>
             ) : (
               <button
-                onClick={onDownload}
+                onClick={() => {
+                  // On landing page, use the passed handler (for scrolling)
+                  // On other pages, open the beta modal directly
+                  if (location.pathname === '/' && onDownload) {
+                    onDownload()
+                  } else {
+                    setIsBetaModalOpen(true)
+                  }
+                }}
                 className="bg-primary text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-amber-700 transition-all shadow-lg shadow-primary/20"
               >
                 Download
@@ -214,7 +225,13 @@ export function LandingNav({ onDownload }: LandingNavProps) {
               <button
                 onClick={() => {
                   setMobileMenuOpen(false)
-                  onDownload?.()
+                  // On landing page, use the passed handler (for scrolling)
+                  // On other pages, open the beta modal directly
+                  if (location.pathname === '/' && onDownload) {
+                    onDownload()
+                  } else {
+                    setIsBetaModalOpen(true)
+                  }
                 }}
                 className="w-full mt-2 bg-primary text-white px-5 py-3 rounded-full text-sm font-medium hover:bg-amber-700 transition-all"
               >
@@ -224,6 +241,12 @@ export function LandingNav({ onDownload }: LandingNavProps) {
           </div>
         )}
       </div>
+
+      {/* Beta Modal for login/signup */}
+      <BetaModal 
+        isOpen={isBetaModalOpen} 
+        onClose={() => setIsBetaModalOpen(false)} 
+      />
     </nav>
   )
 }

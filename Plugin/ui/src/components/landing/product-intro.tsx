@@ -31,7 +31,7 @@ const FEATURE_BADGES = [
 
 export function ProductIntro() {
   return (
-    <section className="py-16 md:py-24 bg-landing-surface-light dark:bg-landing-surface-dark relative" id="product">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-landing-surface-light to-transparent dark:bg-landing-surface-dark relative" id="product">
       <div className="flex flex-col max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 items-center">
         <h2 className="text-center font-display text-2xl sm:text-3xl md:text-5xl font-normal leading-tight mb-8 md:mb-12 text-landing-text-light dark:text-landing-text-dark">
           Congratulations, you just found

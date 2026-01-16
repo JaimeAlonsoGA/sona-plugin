@@ -6,11 +6,12 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Check, AlertCircle, Music, Link2, MessageSquare, Bug, Lightbulb, Sparkles, Loader2 } from 'lucide-react'
 import { LandingNav } from '@/components/landing/landing-nav'
 import { LandingFooter } from '@/components/landing/landing-footer'
+import { BetaModal } from '@/components/landing/beta-modal'
 import { useSession, useSubmitReport, useLatestJob } from '@/lib/hooks'
 import type { FeedbackType } from '@/lib/api/reports'
 import { VersionBadge } from '@/components/shared/version-badge'
@@ -46,6 +47,7 @@ export default function FeedbackPage() {
   const { data: session, isLoading: sessionLoading } = useSession()
   const { data: latestJob, isLoading: isLoadingJob } = useLatestJob()
   const submitReportMutation = useSubmitReport()
+  const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
 
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('general')
   const [message, setMessage] = useState('')
@@ -67,6 +69,13 @@ export default function FeedbackPage() {
       setIncludeLastGeneration(false)
     }
   }, [feedbackType])
+
+  // Show login modal if not authenticated (instead of redirecting)
+  useEffect(() => {
+    if (!sessionLoading && !session) {
+      setIsBetaModalOpen(true)
+    }
+  }, [session, sessionLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,11 +122,6 @@ export default function FeedbackPage() {
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
-  }
-
-  // Auth protection - redirect to landing if not logged in
-  if (!session) {
-    return <Navigate to="/" replace />
   }
 
   return (
@@ -410,6 +414,12 @@ export default function FeedbackPage() {
       </main>
 
       <LandingFooter />
+
+      {/* Beta Modal for login/signup */}
+      <BetaModal 
+        isOpen={isBetaModalOpen} 
+        onClose={() => setIsBetaModalOpen(false)} 
+      />
     </div>
   )
 }

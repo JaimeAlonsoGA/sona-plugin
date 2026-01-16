@@ -58,10 +58,10 @@ export default function DownloadPage() {
         }
 
         setIsDownloading(true);
-        
+
         try {
             const downloadUrl = DOWNLOAD_URLS[selectedPlatform][selectedFormat];
-            
+
             // Create a temporary anchor element to trigger download
             const link = document.createElement('a');
             link.href = downloadUrl;
@@ -187,7 +187,7 @@ export default function DownloadPage() {
                                             : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
                                             }`}
                                     >
-                                        <span className="font-medium text-sm">Standalone</span>
+                                        <span className="font-medium text-sm">Desktop Application</span>
                                     </button>
                                 </div>
                             </div>
@@ -196,11 +196,10 @@ export default function DownloadPage() {
                             <button
                                 onClick={handleDownload}
                                 disabled={isDownloading || isMacSelected}
-                                className={`w-full px-8 py-5 rounded-2xl text-lg font-medium transition-all shadow-xl flex items-center justify-center gap-3 group mb-6 ${
-                                    isMacSelected 
+                                className={`w-full px-8 py-5 rounded-2xl text-lg font-medium transition-all shadow-xl flex items-center justify-center gap-3 group mb-6 ${isMacSelected
                                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed shadow-none'
                                         : 'bg-primary text-white hover:bg-amber-700 shadow-primary/25'
-                                } ${isDownloading ? 'opacity-75 cursor-wait' : ''}`}
+                                    } ${isDownloading ? 'opacity-75 cursor-wait' : ''}`}
                             >
                                 {isDownloading ? (
                                     <>
@@ -210,8 +209,8 @@ export default function DownloadPage() {
                                 ) : (
                                     <>
                                         <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />
-                                        {isMacSelected 
-                                            ? 'macOS Coming Soon' 
+                                        {isMacSelected
+                                            ? 'macOS Coming Soon'
                                             : `Download SONA for ${selectedPlatform === 'windows' ? 'Windows' : 'macOS'}`
                                         }
                                     </>

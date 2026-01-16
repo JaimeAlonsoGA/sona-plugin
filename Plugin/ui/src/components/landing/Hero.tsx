@@ -73,7 +73,7 @@ export function Hero({ onDownload, onWatchDemo }: HeroProps) {
   }
 
   return (
-    <section className="relative pt-24 pb-12 sm:pt-28 sm:pb-16 lg:pt-48 lg:pb-32 overflow-hidden">
+    <section className="bg-gradient-to-b from-transparent to-landing-surface-light relative pt-24 pb-12 sm:pt-28 sm:pb-16 lg:pt-48 lg:pb-32 overflow-hidden">
       {/* Background Glow Effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[300px] sm:w-[400px] lg:w-[500px] h-[300px] sm:h-[400px] lg:h-[500px] bg-primary/10 rounded-full blur-[80px] sm:blur-[100px] lg:blur-[120px] dark:bg-primary/20" />

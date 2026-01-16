@@ -10,8 +10,8 @@ import generateImage from '../../assets/website-assets/generation.webp'
 
 export function Features() {
   return (
-    <section className="py-16 md:py-32 overflow-hidden" id="features">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 md:space-y-32">
+    <section className="bg-gradient-to-b from-transparent to-landing-surface-light py-16 md:py-32 overflow-hidden" id="features">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         {/* AI Prompt Enhancer */}
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Visual Demo */}
@@ -40,6 +40,10 @@ export function Features() {
                 <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
                   <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                   <span>Built versatile integrating 3 generative models</span>
+                </li>
+                <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>Keep 100% of the rights to your creations</span>
                 </li>
               </ul>
             </div>
@@ -115,7 +119,7 @@ export function Features() {
           {/* Visual Demo */}
           <div className="w-full md:w-1/2 order-2 md:order-1">
             <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+              {/* <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" /> */}
               <div className="w-3/4 space-y-4 relative z-10 transition-transform duration-500 group-hover:scale-105">
                 {/* Prompt Input */}
                 <div className="h-10 bg-landing-bg-light dark:bg-landing-bg-dark rounded-lg w-full flex items-center px-4 border border-gray-200 dark:border-white/10 shadow-lg">
