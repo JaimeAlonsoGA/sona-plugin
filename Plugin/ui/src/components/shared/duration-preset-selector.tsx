@@ -50,6 +50,16 @@ export const DURATION_PRESET_LABELS: Record<DurationPreset, string> = {
 }
 
 /**
+ * Duration limits for custom input by context
+ * Min/Max values that make sense for each mode
+ */
+export const DURATION_LIMITS: Record<DurationContext, { min: number; max: number }> = {
+  designer: { min: 1, max: 30 },      // 1-30 seconds (max is 30, leave margin)
+  'one-shot': { min: 1, max: 180 },   // 1-180 seconds
+  song: { min: 10, max: 180 },        // 10-180 seconds (min 10s for songs)
+}
+
+/**
  * Duration value type - can be a preset, 'auto', or custom number
  */
 export type DurationValue = DurationPreset | 'auto' | number
@@ -96,7 +106,7 @@ export function DurationPresetSelector({
 
   const handleCustomSubmit = () => {
     const num = parseInt(customInput)
-    if (!isNaN(num) && num > 0) {
+    if (!isNaN(num) && num >= limits.min && num <= limits.max) {
       onChange(num)
       setIsOpen(false)
       setCustomInput('')
@@ -124,18 +134,12 @@ export function DurationPresetSelector({
 
   const presets: DurationPreset[] = ['short', 'medium', 'long']
 
+  // Get duration limits for this context
+  const limits = DURATION_LIMITS[context]
+
   // Get max duration hint based on context
   const getMaxDurationHint = (): string => {
-    switch (context) {
-      case 'designer':
-        return 'Max: 47s'
-      case 'one-shot':
-        return 'Max: 180s'
-      case 'song':
-        return 'Max: 3min'
-      default:
-        return ''
-    }
+    return `${limits.min}s - ${limits.max}s`
   }
 
   return (
@@ -241,7 +245,8 @@ export function DurationPresetSelector({
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   placeholder="sec"
-                  min={1}
+                  min={limits.min}
+                  max={limits.max}
                   className={`
                     flex-1 px-2 py-1.5 rounded-lg text-xs font-medium text-center
                     bg-[var(--sona-bg)] border border-[var(--sona-border)]

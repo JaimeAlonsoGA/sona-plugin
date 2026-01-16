@@ -10,5 +10,12 @@ Instruments": [
   ]
 expected: the result shouldn't be an array of instruments for the naming convention
 
+
 [PRIOR]- Error with supabase storage when file beign big (30mb)
 reproduce: song with lenght 3minutes on HQ. 
+
+
+- El reproductor a veces sigue reproduciendo al infinito, incluso con loop mode.
+
+
+[PRIOR]- SonaProvider error

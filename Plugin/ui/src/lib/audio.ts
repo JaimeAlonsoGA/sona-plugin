@@ -12,7 +12,7 @@ export async function downloadAudio(url: string, filename: string): Promise<void
     const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = blobUrl
-    link.download = `${filename}.mp3`
+    link.download = `${filename}.wav`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

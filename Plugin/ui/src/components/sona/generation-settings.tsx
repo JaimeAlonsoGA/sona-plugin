@@ -29,6 +29,10 @@ import {
 } from '../shared/duration-preset-selector'
 import { ProducerSettings, BPMSelector, type ProducerConfig, DEFAULT_PRODUCER_CONFIG, calculateDuration } from '../shared/producer-settings'
 import { TokenCostIndicator } from './token-cost-indicator'
+import type { QualityLevel } from '../../lib/token-costs'
+
+// Re-export QualityLevel for backward compatibility
+export type { QualityLevel } from '../../lib/token-costs'
 
 // Quality options - 3 levels: draft, standard, high
 const QUALITY_OPTIONS = [
@@ -36,8 +40,6 @@ const QUALITY_OPTIONS = [
   { value: 'standard' as const, label: 'Std' },
   { value: 'high' as const, label: 'HQ', premium: true },
 ]
-
-export type QualityLevel = 'draft' | 'standard' | 'high'
 
 export interface CreatorConfig {
   bpm: number

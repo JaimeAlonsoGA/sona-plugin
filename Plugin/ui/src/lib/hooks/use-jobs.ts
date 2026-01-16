@@ -7,7 +7,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
-import { submitJob, getJob, getUserJobs, subscribeToJob } from '../api/jobs'
+import { submitJob, getJob, getUserJobs, subscribeToJob, getTotalCompletedJobsCount } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 import { useIsAuthenticated } from './use-supabase'
 
@@ -18,6 +18,7 @@ export const jobQueryKeys = {
   all: ['jobs'] as const,
   list: () => [...jobQueryKeys.all, 'list'] as const,
   completed: () => [...jobQueryKeys.all, 'completed'] as const,
+  totalCompletedCount: () => [...jobQueryKeys.all, 'totalCompletedCount'] as const,
   detail: (id: string) => [...jobQueryKeys.all, 'detail', id] as const,
 }
 
@@ -98,6 +99,9 @@ export function useUserJobs(limit = 50) {
  * Hook to get only completed jobs with audio
  * Uses the same cached data as useUserJobs for efficiency
  * 
+ * NOTE: Due to storage limits, only the 7 most recent audio files are kept.
+ * Jobs older than the 7th most recent will have their audio paths cleared.
+ * 
  * @param limit - Maximum number of jobs to fetch
  * @returns Query result with completed jobs that have audio
  */
@@ -118,6 +122,25 @@ export function useCompletedJobs(limit = 50) {
     totalCount: jobs?.length ?? 0,
     completedCount: completedJobs.length,
   }
+}
+
+/**
+ * Hook to get the total historical count of completed jobs
+ * This includes all completed jobs, even those whose audio has been removed from storage
+ * 
+ * @returns Query result with total completed jobs count
+ */
+export function useTotalCompletedJobsCount() {
+  const isAuthenticated = useIsAuthenticated()
+  
+  return useQuery({
+    queryKey: jobQueryKeys.totalCompletedCount(),
+    queryFn: () => getTotalCompletedJobsCount(),
+    staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    enabled: isAuthenticated,
+  })
 }
 
 /**

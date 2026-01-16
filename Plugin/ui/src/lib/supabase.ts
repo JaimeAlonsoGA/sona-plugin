@@ -68,6 +68,9 @@ export async function signUp(email: string, password: string): Promise<AuthRespo
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${import.meta.env.VITE_APP_URL}/email-confirmation`,
+      },
     })
     
     return {

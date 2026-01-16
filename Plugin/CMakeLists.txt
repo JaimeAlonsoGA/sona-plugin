@@ -2,6 +2,12 @@ project(Sona VERSION 1.0.0)
 
 set(TargetName ${PROJECT_NAME})
 
+# Binary data for resources (icon, etc.)
+juce_add_binary_data(SonaBinaryData
+    SOURCES
+        Resources/sona-icon.png
+)
+
 # Fetch WebView2 SDK for Windows
 if(WIN32)
     include(FetchContent)
@@ -22,6 +28,10 @@ juce_add_plugin("${TargetName}"
     PLUGIN_CODE Sona                        # 4 caracteres únicos
     FORMATS VST3 Standalone AU
     PRODUCT_NAME "Sona"
+    
+    # Plugin icon
+    ICON_BIG "Resources/sona-icon.png"
+    ICON_SMALL "Resources/sona-icon.png"
     
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
@@ -58,6 +68,7 @@ target_compile_definitions(${TargetName}
 # Link libraries
 target_link_libraries(${TargetName}
     PRIVATE
+        SonaBinaryData
         juce::juce_audio_utils
         juce::juce_gui_extra                    # Para WebBrowserComponent
         juce::juce_recommended_config_flags

@@ -1,12 +1,13 @@
 /**
  * Command Palette Component
  * 
- * Keyboard-accessible command palette (Ctrl+J)
+ * Keyboard-accessible command palette (Ctrl/⌘+J)
  * Shows all available shortcuts and actions
  */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { openWebPage, WEBSITE_ROUTES } from '@/lib/navigation'
 import {
   CommandDialog,
   CommandEmpty,
@@ -22,103 +23,190 @@ interface Command {
   id: string
   label: string
   shortcut?: string
-  icon: string
   action: () => void
-  group: 'navigation' | 'actions' | 'audio'
+  group: 'navigation' | 'playback' | 'modes' | 'quality' | 'actions' | 'external'
+}
+
+// Detect if user is on Mac
+const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+
+// Format shortcut key based on OS
+const formatShortcut = (shortcut: string): string => {
+  if (isMac) {
+    return shortcut
+      .replace(/Ctrl\+/g, '⌘')
+      .replace(/Alt\+/g, '⌥')
+      .replace(/Shift\+/g, '⇧')
+  }
+  return shortcut
 }
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
 
-  const commands: Command[] = [
-    // Navigation
+  const commands: Command[] = useMemo(() => [
+    // === NAVIGATION ===
     {
-      id: 'home',
-      label: 'Go to Create',
-      shortcut: 'Ctrl+H',
-      icon: '🎵',
-      action: () => navigate('/sona'),
+      id: 'sounds',
+      label: 'Go to Sound Library',
+      shortcut: 'Ctrl+G',
+      action: () => navigate('/sounds'),
       group: 'navigation',
     },
     {
-      id: 'profile',
-      label: 'Go to Profile',
-      shortcut: 'Ctrl+P',
-      icon: '👤',
-      action: () => navigate('/profile'),
+      id: 'naming',
+      label: 'Go to Naming Convention',
+      shortcut: 'Ctrl+,',
+      action: () => navigate('/profile?tab=naming'),
       group: 'navigation',
     },
     {
       id: 'billing',
       label: 'Go to Billing',
       shortcut: 'Ctrl+B',
-      icon: '💳',
       action: () => navigate('/profile?tab=billing'),
       group: 'navigation',
     },
+
+    // === EXTERNAL LINKS (Landing pages) ===
     {
-      id: 'sounds',
-      label: 'Go to Sound Library',
-      shortcut: 'Ctrl+G',
-      icon: '📚',
-      action: () => navigate('/sounds'),
-      group: 'navigation',
+      id: 'prompting',
+      label: 'Open Prompting Guide ↗',
+      shortcut: 'Ctrl+/',
+      action: () => openWebPage(WEBSITE_ROUTES.PROMPTING),
+      group: 'external',
     },
-    // Audio Actions
+    {
+      id: 'feedback',
+      label: 'Open Feedback Form ↗',
+      shortcut: 'Ctrl+F',
+      action: () => openWebPage(WEBSITE_ROUTES.FEEDBACK),
+      group: 'external',
+    },
+
+    // === PLAYBACK ===
+    {
+      id: 'play',
+      label: 'Play / Pause',
+      shortcut: 'Space',
+      action: () => window.dispatchEvent(new CustomEvent('sona:toggle-play')),
+      group: 'playback',
+    },
     {
       id: 'copy',
-      label: 'Copy Creation to Clipboard',
+      label: 'Copy Audio to Clipboard',
       shortcut: 'Ctrl+C',
-      icon: '📋',
-      action: () => {
-        // Dispatch custom event that sona-player can listen to
-        window.dispatchEvent(new CustomEvent('sona:copy-audio'))
-      },
-      group: 'audio',
+      action: () => window.dispatchEvent(new CustomEvent('sona:copy-audio')),
+      group: 'playback',
     },
     {
       id: 'save',
-      label: 'Save Creation',
+      label: 'Save Audio',
       shortcut: 'Ctrl+S',
-      icon: '💾',
-      action: () => {
-        window.dispatchEvent(new CustomEvent('sona:save-audio'))
-      },
-      group: 'audio',
+      action: () => window.dispatchEvent(new CustomEvent('sona:save-audio')),
+      group: 'playback',
     },
     {
-      id: 'play',
-      label: 'Play/Pause Audio',
-      shortcut: 'Space',
-      icon: '▶️',
-      action: () => {
-        window.dispatchEvent(new CustomEvent('sona:toggle-play'))
-      },
-      group: 'audio',
-    },
-    // Actions
-    {
-      id: 'new',
-      label: 'New Generation',
-      shortcut: 'Ctrl+N',
-      icon: '✨',
-      action: () => {
-        navigate('/sona')
-        window.dispatchEvent(new CustomEvent('sona:new-generation'))
-      },
-      group: 'actions',
+      id: 'forward',
+      label: 'Skip Forward',
+      shortcut: 'Ctrl+→',
+      action: () => window.dispatchEvent(new CustomEvent('sona:seek-forward')),
+      group: 'playback',
     },
     {
-      id: 'settings',
-      label: 'Open Settings',
-      icon: '⚙️',
-      action: () => navigate('/profile?tab=settings'),
-      group: 'actions',
+      id: 'backward',
+      label: 'Skip Backward',
+      shortcut: 'Ctrl+←',
+      action: () => window.dispatchEvent(new CustomEvent('sona:seek-backward')),
+      group: 'playback',
     },
-  ]
+    {
+      id: 'loop',
+      label: 'Toggle Loop',
+      shortcut: 'L',
+      action: () => window.dispatchEvent(new CustomEvent('sona:toggle-loop')),
+      group: 'playback',
+    },
+    {
+      id: 'mute',
+      label: 'Toggle Mute',
+      shortcut: 'M',
+      action: () => window.dispatchEvent(new CustomEvent('sona:toggle-mute')),
+      group: 'playback',
+    },
 
-  // Main Ctrl+J handler to open palette
+    // === MODES ===
+    {
+      id: 'mode-designer',
+      label: 'Switch to Designer Mode',
+      shortcut: 'Alt+1',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'designer' })),
+      group: 'modes',
+    },
+    {
+      id: 'mode-producer',
+      label: 'Switch to Producer Mode',
+      shortcut: 'Alt+2',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'producer' })),
+      group: 'modes',
+    },
+    {
+      id: 'mode-creator',
+      label: 'Switch to Creator Mode',
+      shortcut: 'Alt+3',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'creator' })),
+      group: 'modes',
+    },
+
+    // === QUALITY ===
+    {
+      id: 'quality-draft',
+      label: 'Quality: Draft',
+      shortcut: '1',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'low' })),
+      group: 'quality',
+    },
+    {
+      id: 'quality-standard',
+      label: 'Quality: Standard',
+      shortcut: '2',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'medium' })),
+      group: 'quality',
+    },
+    {
+      id: 'quality-hq',
+      label: 'Quality: High',
+      shortcut: '3',
+      action: () => window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'high' })),
+      group: 'quality',
+    },
+
+    // === ACTIONS ===
+    {
+      id: 'enhance',
+      label: 'Enhance Prompt',
+      shortcut: 'Ctrl+Space',
+      action: () => window.dispatchEvent(new CustomEvent('sona:enhance-prompt')),
+      group: 'actions',
+    },
+    {
+      id: 'create',
+      label: 'Create / Generate',
+      shortcut: 'Ctrl+Enter',
+      action: () => window.dispatchEvent(new CustomEvent('sona:create')),
+      group: 'actions',
+    },
+    {
+      id: 'next-tip',
+      label: 'Next Tip',
+      shortcut: 'Ctrl+N',
+      action: () => window.dispatchEvent(new CustomEvent('sona:next-tip')),
+      group: 'actions',
+    },
+  ], [navigate])
+
+  // Open command palette with Ctrl/⌘+J
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
@@ -139,32 +227,96 @@ export function CommandPalette() {
       if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return
 
       const isCtrl = e.ctrlKey || e.metaKey
+      const isAlt = e.altKey
 
-      if (isCtrl) {
+      // Navigation shortcuts (Ctrl/⌘ + key)
+      if (isCtrl && !isAlt) {
         switch (e.key.toLowerCase()) {
-          case 'h':
+          case 'g':
             e.preventDefault()
-            navigate('/sona')
+            navigate('/sounds')
             break
-          case 'p':
+          case ',':
             e.preventDefault()
-            navigate('/profile')
+            navigate('/profile?tab=naming')
+            break
+          case '/':
+            e.preventDefault()
+            openWebPage(WEBSITE_ROUTES.PROMPTING)
+            break
+          case 'f':
+            e.preventDefault()
+            openWebPage(WEBSITE_ROUTES.FEEDBACK)
             break
           case 'b':
             e.preventDefault()
             navigate('/profile?tab=billing')
             break
-          case 'g':
-            e.preventDefault()
-            navigate('/sounds')
-            break
           case 'n':
             e.preventDefault()
-            navigate('/sona')
-            window.dispatchEvent(new CustomEvent('sona:new-generation'))
+            window.dispatchEvent(new CustomEvent('sona:next-tip'))
+            break
+          case 'arrowright':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:seek-forward'))
+            break
+          case 'arrowleft':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:seek-backward'))
+            break
+          case ' ':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:enhance-prompt'))
+            break
+          case 'enter':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:create'))
             break
           // Note: Ctrl+C and Ctrl+S are handled by the player component
-          // to avoid interfering with native browser behavior
+        }
+      }
+
+      // Mode shortcuts (Alt + number)
+      if (isAlt && !isCtrl) {
+        switch (e.key) {
+          case '1':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'designer' }))
+            break
+          case '2':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'producer' }))
+            break
+          case '3':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-mode', { detail: 'creator' }))
+            break
+        }
+      }
+
+      // Quality shortcuts (number keys without modifiers)
+      if (!isCtrl && !isAlt && !e.shiftKey) {
+        switch (e.key) {
+          case '1':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'low' }))
+            break
+          case '2':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'medium' }))
+            break
+          case '3':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:set-quality', { detail: 'high' }))
+            break
+          case 'l':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:toggle-loop'))
+            break
+          case 'm':
+            e.preventDefault()
+            window.dispatchEvent(new CustomEvent('sona:toggle-mute'))
+            break
         }
       }
     }
@@ -179,7 +331,9 @@ export function CommandPalette() {
   }, [])
 
   const navigationCommands = commands.filter(c => c.group === 'navigation')
-  const audioCommands = commands.filter(c => c.group === 'audio')
+  const playbackCommands = commands.filter(c => c.group === 'playback')
+  const modeCommands = commands.filter(c => c.group === 'modes')
+  const qualityCommands = commands.filter(c => c.group === 'quality')
   const actionCommands = commands.filter(c => c.group === 'actions')
 
   return (
@@ -187,7 +341,7 @@ export function CommandPalette() {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        
+
         <CommandGroup heading="Navigation">
           {navigationCommands.map((command) => (
             <CommandItem
@@ -195,10 +349,9 @@ export function CommandPalette() {
               onSelect={() => runCommand(command)}
               className="cursor-pointer"
             >
-              <span className="mr-2">{command.icon}</span>
               <span>{command.label}</span>
               {command.shortcut && (
-                <CommandShortcut>{command.shortcut}</CommandShortcut>
+                <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
               )}
             </CommandItem>
           ))}
@@ -206,17 +359,50 @@ export function CommandPalette() {
 
         <CommandSeparator />
 
-        <CommandGroup heading="Audio Controls">
-          {audioCommands.map((command) => (
+        <CommandGroup heading="Playback">
+          {playbackCommands.map((command) => (
             <CommandItem
               key={command.id}
               onSelect={() => runCommand(command)}
               className="cursor-pointer"
             >
-              <span className="mr-2">{command.icon}</span>
               <span>{command.label}</span>
               {command.shortcut && (
-                <CommandShortcut>{command.shortcut}</CommandShortcut>
+                <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
+              )}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Modes">
+          {modeCommands.map((command) => (
+            <CommandItem
+              key={command.id}
+              onSelect={() => runCommand(command)}
+              className="cursor-pointer"
+            >
+              <span>{command.label}</span>
+              {command.shortcut && (
+                <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
+              )}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Quality">
+          {qualityCommands.map((command) => (
+            <CommandItem
+              key={command.id}
+              onSelect={() => runCommand(command)}
+              className="cursor-pointer"
+            >
+              <span>{command.label}</span>
+              {command.shortcut && (
+                <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
               )}
             </CommandItem>
           ))}
@@ -231,10 +417,9 @@ export function CommandPalette() {
               onSelect={() => runCommand(command)}
               className="cursor-pointer"
             >
-              <span className="mr-2">{command.icon}</span>
               <span>{command.label}</span>
               {command.shortcut && (
-                <CommandShortcut>{command.shortcut}</CommandShortcut>
+                <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
               )}
             </CommandItem>
           ))}

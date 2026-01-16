@@ -10,7 +10,7 @@ export { BaseAudioClient } from './base.js';
 
 // Client implementations
 export { StableAudio2Client } from './stable-audio-2.js';
-export { StableAudioOpenClient } from './stable-audio-open.js';
+export { TangoFluxClient as StableAudioOpenClient } from './tango-flux.js';
 
 // Factory
 export { createAudioClient } from './factory.js';

@@ -9,7 +9,8 @@ import { SupabaseService } from './supabase.js';
 import { createAudioClient } from './audio-clients/index.js';
 import { TestAudioClient } from './test-audio.js';
 import { AudioProcessor } from './audio-processor.js';
-import { PromptEnhancerService } from './prompt-enhancer.js';
+import { NamingGeneratorService } from './naming-generator.js';
+import { preparePrompt, GenerationMode } from './prepare-prompt.js';
 import { initializeUCSRag } from './ucs-rag.js';
 
 export class AudioWorker {
@@ -17,7 +18,7 @@ export class AudioWorker {
   private supabase: SupabaseService;
   private testAudio: TestAudioClient;
   private audioProcessor: AudioProcessor;
-  private promptEnhancer: PromptEnhancerService;
+  private namingGenerator: NamingGeneratorService;
   private isRunning: boolean = false;
   private limit: ReturnType<typeof pLimit>;
 
@@ -26,7 +27,7 @@ export class AudioWorker {
     this.supabase = new SupabaseService(config);
     this.testAudio = new TestAudioClient();
     this.audioProcessor = new AudioProcessor();
-    this.promptEnhancer = new PromptEnhancerService(config);
+    this.namingGenerator = new NamingGeneratorService(config);
     this.limit = pLimit(config.maxConcurrentJobs);
 
     logger.setLevel(config.logLevel);
@@ -200,19 +201,19 @@ export class AudioWorker {
         isDesigner,
       });
 
-      // Step 1: Generate prompt data (with or without naming convention)
+      // Step 1: Generate naming metadata (with or without naming convention)
       // The prompt enhancement (if any) was already done in the Edge Function.
       // Here we only generate naming metadata or skip it entirely.
       const skipNaming = job.skip_naming === true;
       
-      const enhancedData = skipNaming
-        ? this.promptEnhancer.createSimpleResult(job.prompt, {
+      const namingData = skipNaming
+        ? this.namingGenerator.createSimpleResult(job.prompt, {
             duration: effectiveDuration,
             quality: job.quality,
             mode: job.mode,
             userEmail: job.user_email,
           })
-        : await this.promptEnhancer.generateNaming(job.prompt, {
+        : await this.namingGenerator.generateNaming(job.prompt, {
             duration: effectiveDuration,
             quality: job.quality,
             mode: job.mode,
@@ -223,23 +224,38 @@ export class AudioWorker {
             userEmail: job.user_email,
           });
 
-      logger.info(`Prompt processed for job ${job.id}`, {
-        filename: enhancedData.filename,
-        category: enhancedData.metadata.category,
+      logger.info(`Naming generated for job ${job.id}`, {
+        filename: namingData.filename,
+        category: namingData.metadata.category,
         musicalKey: musicalKey ? `${musicalKey.key} ${musicalKey.scale}` : 'none',
-        enhancedPromptPreview: enhancedData.enhancedPrompt.substring(0, 100) + '...',
+        promptPreview: namingData.processedPrompt.substring(0, 100) + '...',
         skipNaming,
       });
 
-      // Step 2: Generate audio using the enhanced prompt
+      // Step 2: Prepare final prompt with fixed parameters
+      // Appends BPM, key, time signature, bars, duration based on mode
+      const preparedPrompt = preparePrompt(namingData.processedPrompt, {
+        mode: job.mode as GenerationMode,
+        duration: effectiveDuration,
+        durationPreset: durationPreset,
+        musicalKey: musicalKey,
+        producerConfig: producerConfig,
+      });
+
+      logger.info(`Prompt prepared for job ${job.id}`, {
+        appendedParams: preparedPrompt.appendedParams,
+        finalPromptPreview: preparedPrompt.final.substring(0, 150) + '...',
+      });
+
+      // Step 3: Generate audio using the prepared prompt
       // Use factory pattern to select the appropriate audio client based on mode
       const audioClient = this.config.useTestAudio
         ? this.testAudio
         : createAudioClient(job.mode, this.config);
 
       const audioResponse = await audioClient.generateAudio({
-        prompt: enhancedData.enhancedPrompt, // Use enhanced prompt!
-        duration: effectiveDuration,          // Use clamped duration for API
+        prompt: preparedPrompt.final, // Use the final prompt with appended params
+        duration: effectiveDuration,  // Use clamped duration for API
         quality: job.quality,
       });
 
@@ -266,31 +282,35 @@ export class AudioWorker {
         throw new Error('Invalid WAV audio file');
       }
 
-      // Upload WAV to storage using UCS filename
-      const result = await this.uploadAudioFile(audioFiles.wav, enhancedData.filename);
+      // Upload WAV to storage using generated filename
+      const result = await this.uploadAudioFile(audioFiles.wav, namingData.filename);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to upload audio files');
       }
 
-      // Update job with results (paths, enhanced prompt, and filename)
+      // Update job with results (paths, final prompt, and filename)
       const updated = await this.supabase.updateJobResult(
         job.id,
         result.masterPath!,
         result.previewPath!,
-        enhancedData.enhancedPrompt,
-        enhancedData.filename
+        preparedPrompt.final,
+        namingData.filename
       );
 
       if (!updated) {
         throw new Error('Failed to update job with result paths');
       }
 
+      // Enforce storage limit - keep only the 7 most recent audio files per user
+      // This runs after successful completion to clean up old files
+      await this.supabase.enforceUserStorageLimit(job.user_id);
+
       const duration = Date.now() - startTime;
       logger.info(`Job ${job.id} completed successfully in ${duration}ms`, {
         masterPath: result.masterPath,
         previewPath: result.previewPath,
-        filename: enhancedData.filename,
+        filename: namingData.filename,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

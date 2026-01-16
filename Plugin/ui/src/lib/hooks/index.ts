@@ -18,6 +18,7 @@ export {
   useJob,
   useUserJobs,
   useCompletedJobs,
+  useTotalCompletedJobsCount,
   useJobSubscription,
   useJobPolling,
   jobQueryKeys,
@@ -51,3 +52,43 @@ export {
   useUseTokens,
   billingQueryKeys,
 } from './use-billing'
+
+export {
+  useSubmitReport,
+  useLatestJob,
+  reportQueryKeys,
+} from './use-reports'
+export type { LatestJob } from './use-reports'
+
+export {
+  useBetaStatus,
+  useBetaApplication,
+  useSubmitBetaApplication,
+  useInvalidateBetaQueries,
+  useSetBetaStatus,
+  betaQueryKeys,
+} from './use-beta'
+
+export {
+  useIsAdmin,
+  useAdminAccess,
+  useAdminStats,
+  useFinanceStats,
+  useBetaApplications,
+  useApproveBetaApplication,
+  useRejectBetaApplication,
+  useUpdateBetaApplicationNotes,
+  useReports,
+  useUpdateReportStatus,
+  useRespondToReport,
+  useSendReportEmail,
+  useTokenTransactionsAdmin,
+  useAddTokensToUser,
+  useAdminUsers,
+  useGrantAdminRole,
+  useRevokeAdminRole,
+  useGenerationStats,
+  useModeComparison,
+  useRecentJobsAdmin,
+  adminQueryKeys,
+} from './use-admin'

@@ -2,6 +2,14 @@
 
 Generador de samples de audio con IA, diseñado para sound designers y productores musicales.
 
+## Dominios
+
+| Entorno | URL | Descripción |
+|---------|-----|-------------|
+| **Landing Page** | `sona.audio` | Marketing site y registro beta |
+| **Plugin App** | `plugin.sona.audio` | Aplicación web del plugin |
+| **Development** | `localhost:5173` | Servidor de desarrollo local |
+
 ## Stack Tecnológico
 
 - **Plugin**: JUCE 8.0.11 (C++)
@@ -10,6 +18,7 @@ Generador de samples de audio con IA, diseñado para sound designers y productor
 - **AI**: Stable Audio API
 - **Styling**: Tailwind CSS
 - **State**: TanStack Query + React Context
+- **Hosting**: Vercel
 
 ## Estructura del Proyecto
 

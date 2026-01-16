@@ -16,9 +16,10 @@ const corsHeaders = {
 
 // Token packages configuration with prices in cents
 const TOKEN_PACKAGES: Record<string, { tokens: number; name: string; price: number }> = {
-  'tokens_200': { tokens: 200, name: 'Starter (200 tokens)', price: 200 },
-  'tokens_500': { tokens: 500, name: 'Creator (500 tokens)', price: 500 },
-  'tokens_1000': { tokens: 1000, name: 'Producer (1000 tokens)', price: 1000 },
+  'tokens_200': { tokens: 150, name: 'Starter (200 tokens)', price: 200 },
+  'tokens_500': { tokens: 400, name: 'Creator (500 tokens)', price: 500 },
+  'tokens_1000': { tokens: 900, name: 'Producer (1000 tokens)', price: 1000 },
+  'tokens_2000': { tokens: 2000, name: 'Studio (2000 tokens)', price: 2000 },
 }
 
 interface CheckoutRequest {
@@ -38,7 +39,7 @@ async function stripeRequest(
   body?: Record<string, unknown>
 ): Promise<{ data?: unknown; error?: string }> {
   const url = `https://api.stripe.com/v1${endpoint}`
-  
+
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -97,12 +98,12 @@ serve(async (req: Request) => {
     // Get environment variables - same pattern as generate function
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     // Get token from custom header (x-user-token) or Authorization header
     // x-user-token is used because Supabase gateway may filter Authorization header
     const customToken = req.headers.get('x-user-token')
     const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
-    
+
     // Extract token from either source
     let token: string | null = null
     if (customToken) {
@@ -110,14 +111,14 @@ serve(async (req: Request) => {
     } else if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.replace('Bearer ', '')
     }
-    
+
     console.log('Auth debug:', {
       hasCustomToken: !!customToken,
       hasAuthHeader: !!authHeader,
       hasToken: !!token,
       tokenPreview: token?.substring(0, 30) + '...',
     })
-    
+
     if (!token) {
       console.error('No token found in headers')
       return new Response(
@@ -125,7 +126,7 @@ serve(async (req: Request) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
+
     // Use service role client to verify user - same as generate function
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -136,14 +137,14 @@ serve(async (req: Request) => {
 
     // Verify the JWT using admin client's getUser with the token
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    
+
     console.log('User verification result:', {
       hasUser: !!user,
       userId: user?.id,
       userEmail: user?.email,
       authError: authError?.message,
     })
-    
+
     if (authError || !user) {
       console.error('Auth error:', authError?.message)
       return new Response(
@@ -189,7 +190,7 @@ serve(async (req: Request) => {
     // Create Stripe customer if needed
     if (!customerId) {
       console.log('Creating new Stripe customer for user:', user.id)
-      
+
       const customerResult = await stripeRequest('/customers', 'POST', stripeSecretKey, {
         email: user.email,
         'metadata[supabase_user_id]': user.id,
@@ -239,7 +240,7 @@ serve(async (req: Request) => {
       )
     }
 
-    const paymentIntent = paymentIntentResult.data as { 
+    const paymentIntent = paymentIntentResult.data as {
       id: string
       client_secret: string
       status: string
@@ -252,22 +253,22 @@ serve(async (req: Request) => {
         clientSecret: paymentIntent.client_secret,
         packageId: packageId,
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
 
   } catch (error) {
     console.error('Payment intent error:', error)
-    
+
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Internal server error' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Internal server error'
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }

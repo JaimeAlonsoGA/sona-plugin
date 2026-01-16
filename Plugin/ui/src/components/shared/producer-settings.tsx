@@ -146,10 +146,23 @@ export function BPMSelector({ value, onValueChange, disabled, accentColor, label
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
-    const num = parseInt(e.target.value)
-    if (!isNaN(num) && num >= 20 && num <= 300) {
+    const rawValue = e.target.value
+    setInputValue(rawValue)
+    const num = parseInt(rawValue)
+    if (!isNaN(num) && num >= 40 && num <= 200) {
       onValueChange(num)
+    }
+  }
+
+  // Clamp value on blur to ensure it's within valid range
+  const handleBlur = () => {
+    const num = parseInt(inputValue)
+    if (isNaN(num) || num < 40) {
+      setInputValue('40')
+      onValueChange(40)
+    } else if (num > 200) {
+      setInputValue('200')
+      onValueChange(200)
     }
   }
 
@@ -167,10 +180,11 @@ export function BPMSelector({ value, onValueChange, disabled, accentColor, label
           type="number"
           value={inputValue}
           onChange={handleInputChange}
+          onBlur={handleBlur}
           onFocus={() => setIsOpen(true)}
           disabled={disabled}
-          min={20}
-          max={300}
+          min={40}
+          max={200}
           className={`
             w-14 px-2 py-1 rounded-lg text-xs font-medium text-center
             bg-[var(--sona-surface)] border border-[var(--sona-border)]

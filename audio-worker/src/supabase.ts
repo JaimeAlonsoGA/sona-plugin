@@ -293,4 +293,135 @@ export class SupabaseService {
       return false;
     }
   }
+
+  /**
+   * Maximum number of audio files to keep per user in storage
+   */
+  private readonly MAX_AUDIO_FILES_PER_USER = 7;
+
+  /**
+   * Get completed jobs with audio files for a user, ordered by completion date
+   * @param userId - The user ID to query
+   * @returns Array of jobs with audio paths, ordered by completed_at descending (newest first)
+   */
+  async getUserAudioJobs(userId: string): Promise<{ id: string; master_path: string | null; preview_path: string | null; completed_at: string }[]> {
+    try {
+      const { data, error } = await this.client
+        .from('jobs')
+        .select('id, master_path, preview_path, completed_at')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .not('master_path', 'is', null)
+        .order('completed_at', { ascending: false });
+
+      if (error) {
+        logger.error('Error fetching user audio jobs:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      logger.error('Error fetching user audio jobs:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete audio file from storage
+   * @param filePath - The path of the file in storage
+   * @returns True if successful
+   */
+  async deleteAudioFile(filePath: string): Promise<boolean> {
+    try {
+      const { error } = await this.client.storage
+        .from(this.config.storageBucket)
+        .remove([filePath]);
+
+      if (error) {
+        logger.error('Error deleting audio file:', { path: filePath, error });
+        return false;
+      }
+
+      logger.info('Deleted audio file from storage:', filePath);
+      return true;
+    } catch (error) {
+      logger.error('Error deleting audio file:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Clear audio paths from a job record (set to null)
+   * This is called after deleting the audio file to clean up the job record
+   * @param jobId - The job ID to update
+   * @returns True if successful
+   */
+  async clearJobAudioPaths(jobId: string): Promise<boolean> {
+    try {
+      const { error } = await this.client
+        .from('jobs')
+        .update({
+          master_path: null,
+          preview_path: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+
+      if (error) {
+        logger.error('Error clearing job audio paths:', error);
+        return false;
+      }
+
+      logger.info('Cleared audio paths for job:', jobId);
+      return true;
+    } catch (error) {
+      logger.error('Error clearing job audio paths:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Enforce storage limit for a user - keeps only the newest MAX_AUDIO_FILES_PER_USER files
+   * Deletes the oldest audio files and clears paths from job records for files beyond the limit
+   * @param userId - The user ID to enforce limit for
+   * @returns Number of files deleted
+   */
+  async enforceUserStorageLimit(userId: string): Promise<number> {
+    try {
+      const audioJobs = await this.getUserAudioJobs(userId);
+
+      // If under limit, nothing to do
+      if (audioJobs.length <= this.MAX_AUDIO_FILES_PER_USER) {
+        logger.debug(`User ${userId} has ${audioJobs.length} audio files, under limit of ${this.MAX_AUDIO_FILES_PER_USER}`);
+        return 0;
+      }
+
+      // Get jobs that exceed the limit (oldest ones)
+      const jobsToDelete = audioJobs.slice(this.MAX_AUDIO_FILES_PER_USER);
+      let deletedCount = 0;
+
+      logger.info(`User ${userId} has ${audioJobs.length} audio files, removing ${jobsToDelete.length} oldest files`);
+
+      for (const job of jobsToDelete) {
+        // Delete files from storage (master_path and preview_path might be the same)
+        const pathsToDelete = new Set<string>();
+        if (job.master_path) pathsToDelete.add(job.master_path);
+        if (job.preview_path) pathsToDelete.add(job.preview_path);
+
+        for (const path of pathsToDelete) {
+          await this.deleteAudioFile(path);
+        }
+
+        // Clear paths from job record
+        await this.clearJobAudioPaths(job.id);
+        deletedCount++;
+      }
+
+      logger.info(`Deleted ${deletedCount} old audio files for user ${userId}`);
+      return deletedCount;
+    } catch (error) {
+      logger.error('Error enforcing user storage limit:', error);
+      return 0;
+    }
+  }
 }

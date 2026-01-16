@@ -15,7 +15,6 @@ import {
   GripIcon,
   EditIcon,
   CheckIcon,
-  SettingsIcon,
   WaveformIcon,
   LoadingIcon,
 } from '../shared/icons'
@@ -26,7 +25,7 @@ import type {
   NamingParameterType,
 } from '../../types/naming'
 import { DEFAULT_PARAMETERS } from '../../types/naming'
-import { Headphones, Music, Zap } from 'lucide-react'
+import { Headphones, Music } from 'lucide-react'
 
 type Mode = 'designer' | 'producer' | 'creator'
 
@@ -132,7 +131,7 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <SettingsIcon size={16} className="text-[var(--sona-sage)]" />
+          {/* <SettingsIcon size={16} className="text-[var(--sona-sage)]" /> */}
           <h2 className="text-[var(--sona-text)] font-medium">Naming Convention</h2>
           {isSaving && (
             <LoadingIcon size={14} className="text-[var(--sona-sage)] animate-spin" />
@@ -148,9 +147,9 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
       {/* Enable/Disable Toggle */}
       <div className="flex items-center justify-between mb-4 p-3 bg-[var(--sona-surface)] rounded-xl">
         <div className="flex items-center gap-2">
-          <Zap size={14} className={settings.namingEnabled ? 'text-[var(--sona-sage)]' : 'text-[var(--sona-text-subtle)]'} />
+          {/* <Zap size={14} className={settings.namingEnabled ? 'text-[var(--sona-sage)]' : 'text-[var(--sona-text-subtle)]'} /> */}
           <div>
-            <p className="text-sm text-[var(--sona-text)]">AI File Naming</p>
+            <p className="text-sm text-[var(--sona-text)]">Auto File Naming</p>
             <p className="text-[10px] text-[var(--sona-text-subtle)]">
               {settings.namingEnabled ? 'Generate smart file names' : 'Faster generation, simple names'}
             </p>
@@ -184,7 +183,7 @@ export function NamingSettings({ initialMode = 'designer' }: NamingSettingsProps
         </div>
       ) : !settings.namingEnabled ? (
         <div className="text-center py-6 text-[var(--sona-text-subtle)] text-sm">
-          Enable AI File Naming to customize naming conventions
+          Enable Auto File Naming to customize naming conventions
         </div>
       ) : (
         <>

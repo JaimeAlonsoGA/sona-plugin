@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '../supabase'
+import { validateGenerateJobInput } from '../validations/generate-job'
 import type { CreateJobInput, GenerateJobResponse, Job, ApiErrorResponse } from '../../types/jobs'
 
 /**
@@ -16,17 +17,11 @@ import type { CreateJobInput, GenerateJobResponse, Job, ApiErrorResponse } from 
  * @throws Error if not authenticated or submission fails
  */
 export async function submitJob(input: CreateJobInput): Promise<GenerateJobResponse> {
-  // Validate input before submission
-  if (!input.prompt || input.prompt.trim().length === 0) {
-    throw new Error('Prompt is required and cannot be empty')
-  }
-  
-  if (input.prompt.length > 500) {
-    throw new Error('Prompt must be 500 characters or less')
-  }
-  
-  if (input.duration !== undefined && input.duration !== null && (input.duration < 1 || input.duration > 180)) {
-    throw new Error('Duration must be between 1 and 180 seconds')
+  // Validate input with Zod before submission
+  // This mirrors the Edge Function validation to catch errors early
+  const validation = validateGenerateJobInput(input)
+  if (!validation.success) {
+    throw new Error(validation.errors?.join(', ') || 'Invalid input')
   }
 
   // Get fresh session - this will auto-refresh if expired
@@ -203,5 +198,30 @@ export function subscribeToJob(
     unsubscribe: () => {
       channel.unsubscribe()
     },
+  }
+}
+
+/**
+ * Get the total count of completed jobs for the current user (historical)
+ * This includes all completed jobs, even those without audio files in storage
+ * 
+ * @returns Promise with the total count of completed jobs
+ */
+export async function getTotalCompletedJobsCount(): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('jobs')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed')
+
+    if (error) {
+      console.error('Get total completed jobs count error:', error)
+      return 0
+    }
+
+    return count || 0
+  } catch (error) {
+    console.error('Get total completed jobs count error:', error)
+    return 0
   }
 }

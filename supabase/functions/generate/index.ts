@@ -21,46 +21,84 @@ const corsHeaders = {
 // TOKEN COST CONFIGURATION
 // Must match Plugin/ui/src/lib/token-costs.ts
 // ============================================
+type GenerationTier = 'designer' | 'producer' | 'creator'
+type QualityLevel = 'draft' | 'standard' | 'high'
+
 const TOKEN_COSTS = {
-  BASE_COST: 20,
-  DURATION: { 3: 0, 10: 0, 30: 5, 60: 10, 120: 15, 180: 20 } as Record<number, number>,
-  QUALITY: { low: 0, medium: 0, high: 10 } as Record<string, number>,
+  /** Base cost by tier */
+  BASE: {
+    designer: 4,
+    producer: 12,
+    creator: 20,
+  } as const,
+
+  /** Additional cost by quality level per tier */
+  QUALITY: {
+    designer: { draft: 0, standard: 3, high: 8 },
+    producer: { draft: 0, standard: 4, high: 10 },
+    creator: { draft: 0, standard: 5, high: 13 },
+  } as const,
+
+  /** Additional cost by duration per tier (in seconds) */
+  DURATION: {
+    designer: { 10: 2, 20: 4 },
+    producer: { 8: 3, 18: 5, 30: 8 },
+    creator: { 120: 5, 180: 8 },
+  } as const,
 }
 
 /**
  * Find the closest duration tier for cost calculation
  */
-function findClosestDurationTier(duration: number): number {
-  const tiers = [3, 10, 30, 60, 120, 180]
-  for (const tier of tiers) {
-    if (duration <= tier) return tier
+function findClosestDurationTier(tier: GenerationTier, duration: number): number | null {
+  const tierDurations = TOKEN_COSTS.DURATION[tier]
+  const tiers = Object.keys(tierDurations).map(Number).sort((a, b) => a - b)
+  
+  for (const tierKey of tiers) {
+    if (duration <= tierKey) return tierKey
   }
-  return 180
+  
+  return tiers[tiers.length - 1] ?? null
 }
 
 /**
  * Calculate token cost based on generation parameters
  */
-function calculateTokenCost(duration: number, quality: string): number {
-  let cost = TOKEN_COSTS.BASE_COST
+function calculateTokenCost(tier: GenerationTier, duration: number, quality: string): number {
+  let cost = TOKEN_COSTS.BASE[tier]
   
   // Duration extra cost
-  const durationTier = findClosestDurationTier(duration)
-  cost += TOKEN_COSTS.DURATION[durationTier] ?? 0
+  const durationTier = findClosestDurationTier(tier, duration)
+  if (durationTier !== null) {
+    const tierDurations = TOKEN_COSTS.DURATION[tier] as Record<number, number>
+    cost += tierDurations[durationTier] ?? 0
+  }
   
-  // Quality extra cost (map 'medium' to 'standard' for backward compat)
-  const qualityKey = quality === 'medium' ? 'medium' : quality
-  cost += TOKEN_COSTS.QUALITY[qualityKey] ?? 0
+  // Quality extra cost - normalize quality string
+  const normalizedQuality = (quality === 'medium' ? 'standard' : quality === 'low' ? 'draft' : quality) as QualityLevel
+  cost += TOKEN_COSTS.QUALITY[tier][normalizedQuality] ?? 0
   
   return cost
 }
 
 /**
+ * Format duration for display
+ */
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  if (remainingSeconds === 0) return `${minutes}m`
+  return `${minutes}m ${remainingSeconds}s`
+}
+
+/**
  * Generate description for token transaction
  */
-function generateCostDescription(duration: number, quality: string, prompt: string): string {
+function generateCostDescription(tier: GenerationTier, duration: number, quality: string, prompt: string): string {
   const promptSummary = prompt.length > 30 ? prompt.slice(0, 30) + '...' : prompt
-  return `Audio (${duration}s, ${quality}): "${promptSummary}"`
+  const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1)
+  return `${tierLabel} (${formatDuration(duration)}, ${quality}): "${promptSummary}"`
 }
 
 // Input validation schema
@@ -121,9 +159,20 @@ function validateInput(body: GenerateRequest): { valid: boolean; errors: string[
     errors.push('Prompt is required and must be a string')
   } else if (body.prompt.trim().length === 0) {
     errors.push('Prompt cannot be empty')
-  } else if (body.prompt.length > 500) {
-    errors.push('Prompt must be 500 characters or less')
-  }
+  } else if (body.prompt.length > 800) {
+    errors.push('Prompt must be 800 characters or less')
+  } else if (body.prompt.length < 5) {
+    errors.push('Prompt must be at least 5 characters long')
+  } 
+  // else if (/[^a-zA-Z0-9 ,.'"!?\-]/.test(body.prompt)) {
+  //   errors.push('Prompt contains invalid characters')
+  // } else if (/https?:\/\//.test(body.prompt)) {
+  //   errors.push('Prompt cannot contain URLs')
+  // } else if (/[\u{1F600}-\u{1F64F}]/u.test(body.prompt)) {
+  //   errors.push('Prompt cannot contain emojis')
+  // } else if (/<script.*?>/i.test(body.prompt)) {
+  //   errors.push('Prompt cannot contain script tags')
+  // } 
 
   // Validate duration (optional, default to 10 seconds if null or undefined)
   if (body.duration !== undefined && body.duration !== null) {
@@ -276,14 +325,17 @@ serve(async (req: Request) => {
     // ============================================
     // TOKEN VERIFICATION AND CHARGING
     // ============================================
+    const mode = (body.mode ?? 'designer') as GenerationTier
     const tokenCost = calculateTokenCost(
+      mode,
       body.duration ?? 10,
-      body.quality ?? 'medium'
+      body.quality ?? 'standard'
     )
     
     console.log('Token cost calculation:', {
+      tier: mode,
       duration: body.duration ?? 10,
-      quality: body.quality ?? 'medium',
+      quality: body.quality ?? 'standard',
       calculatedCost: tokenCost,
     })
 
@@ -326,8 +378,9 @@ serve(async (req: Request) => {
 
     // Charge tokens BEFORE creating the job
     const costDescription = generateCostDescription(
+      mode,
       body.duration ?? 10,
-      body.quality ?? 'medium',
+      body.quality ?? 'standard',
       body.prompt.trim()
     )
     
@@ -359,7 +412,7 @@ serve(async (req: Request) => {
       user_id: user.id,
       prompt: body.prompt.trim(),
       duration: body.duration ?? 10, // Default 10 seconds
-      quality: body.quality ?? 'medium', // Default medium quality
+      quality: body.quality ?? 'standard', // Default standard quality
       mode: body.mode ?? 'designer',
       status: 'queued',
       naming_convention: body.namingConvention ? JSON.stringify(body.namingConvention) : undefined,

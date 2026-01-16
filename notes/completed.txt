@@ -66,6 +66,101 @@ expected en song: prompt-psychedelic cumbia... result: Artist_SongName_Master_44
 - Añadir opción activar o desactivar (enhanced-prompt && auto naming convention)
 
 
+- Hacer un provider para no perder config, audio y prompt con profile
+
+
+- Mejorar storage (no puede haber almacenamiento-permanente-de-audios-generados/user)
+Cada user puede guardar 7 audios.
+
+
+- Respecto a los naming conventions: 
+Puedes cambiarlo desde el footer. 
+Si no lo tienes activado, se refleja en la ui del footer.
+
+
+- Añadir BPM, time signature, duration y bars FIXED en el prompt final
+
+
+- Mejorar comandos, y hacerlos accesibles
+
+
+- Añadir la opción de dar feedback
+
+
+- Adaptar ejemplos de la preview del naming convention a sus modos
+
+
+- Pensar relación Token Usage -> Token Purchase.
+
+
+- Hacer números para calcular pricing rentable.
+
+
+- UI: Mejorar loading state de <Suspense>
+
+
+- Diseñar un icono
+
+ 
+- Access BETA cycle desde landing (CTA funcionales)
+
+
+- Crear page de descarga (y un código QR de acceso a ese link)
+
+
+- Hacer responsive.
+
+
+- User story de descarga y setup de plugin (landing, etc)
+
+
+- Mejorar UI rounds para plugin estético 100% (audio player, modes)
+
+
+- Rehacer la landing page con branding, nuevas features y preparada para producción
+
+
+-(Job submission failed: Error: Prompt must be 500 characters or less)
+
+
+- Añadir límites a parámetros como el BPM y la duración
+
+
+- Checkear que se descargue en .wav
+
+
+- Añadir crash handle
+
+
+- Error handleling para errores de Frontend
+
+
+- Añadir un ZOD para el botón de create (max/min input)
+
+
+- Comprobar persistencia de datos en logout y login
+
+
+- Hacer el feedback funcional
+
+
+- Mandar correos cuando:
+un usuario mande feedback (a él y a mi)
+un usuario sea aceptado en la beta
+un usuario solicite la entrada a la beta
+un usuario compre tokens
+
+
+- Crear correos para sona.audio (hello@sona.audio | support@sona.audio)
+
+
+- Escribir a Stable Audio para conseguir oferta de tokens
+
+
+- Dar 1000 tokens a nuevos usuarios
+
+
+
 
 
 

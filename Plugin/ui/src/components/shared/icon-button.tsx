@@ -10,7 +10,7 @@ import { forwardRef, type ReactNode } from 'react'
 interface IconButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   icon: ReactNode
   variant?: 'ghost' | 'filled' | 'ember' | 'sage'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'none'
   label?: string
 }
 
@@ -25,16 +25,18 @@ const sizes = {
   sm: 'w-7 h-7',
   md: 'w-9 h-9',
   lg: 'w-11 h-11',
+  none: '',
 }
 
 const iconSizes = {
   sm: 'w-3.5 h-3.5',
   md: 'w-4 h-4',
   lg: 'w-5 h-5',
+  none: '',
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, variant = 'ghost', size = 'md', label, disabled, className = '', ...props }, ref) => {
+  ({ icon, variant = 'ghost', size = 'none', label, disabled, className = '', ...props }, ref) => {
     return (
       <motion.button
         ref={ref}
@@ -46,6 +48,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           rounded-full flex items-center justify-center 
           transition-colors duration-200
           disabled:opacity-40 disabled:cursor-not-allowed
+          p-1
           ${className}
         `}
         disabled={disabled}
