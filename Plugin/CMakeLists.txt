@@ -6,6 +6,7 @@ set(TargetName ${PROJECT_NAME})
 juce_add_binary_data(SonaBinaryData
     SOURCES
         Resources/sona-icon.png
+        Resources/sona-icon.ico
 )
 
 # Fetch WebView2 SDK for Windows
@@ -23,11 +24,12 @@ if(WIN32)
 endif()
 
 juce_add_plugin("${TargetName}"
-    COMPANY_NAME "YourCompany"              # Cambiar
+    COMPANY_NAME "Sona Audio"
     PLUGIN_MANUFACTURER_CODE Sona           # 4 caracteres únicos
     PLUGIN_CODE Sona                        # 4 caracteres únicos
     FORMATS VST3 Standalone AU
     PRODUCT_NAME "Sona"
+    BUNDLE_ID "audio.sona.plugin"
     
     # Plugin icon
     ICON_BIG "Resources/sona-icon.png"

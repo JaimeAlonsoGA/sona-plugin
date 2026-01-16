@@ -1,0 +1,8 @@
+// Sona custom resource file for Windows icon
+// This file defines the application icon for the standalone executable
+
+#include <windows.h>
+
+// Define the icon resource
+// IDI_ICON1 is the standard identifier for the main application icon
+IDI_ICON1 ICON "sona-icon.ico"

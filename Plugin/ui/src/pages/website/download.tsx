@@ -178,7 +178,7 @@ export default function DownloadPage() {
                                             : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
                                             }`}
                                     >
-                                        <span className="font-medium text-sm">VST3 Only</span>
+                                        <span className="font-medium text-sm">VST3</span>
                                     </button>
                                     <button
                                         onClick={() => setSelectedFormat('standalone')}
