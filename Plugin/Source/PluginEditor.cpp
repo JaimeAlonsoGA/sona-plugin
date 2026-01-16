@@ -24,7 +24,7 @@ SonaEditor::SonaEditor(SonaProcessor& p)
     webView.goToURL("http://localhost:5173");
 #else
     // En producción, usar el resource provider con URL local
-    webView.goToURL("http://sona.local/index.html");
+    webView.goToURL("http://plugin.sona.audio");
 #endif
     
     setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);

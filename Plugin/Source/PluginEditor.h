@@ -42,7 +42,7 @@ private:
                 completion({});
             })
             .withResourceProvider([this](const juce::String& url) { return getResource(url); },
-                                  juce::String("http://sona.local"))
+                                  juce::String("http://plugin.sona.audio"))
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SonaEditor)
