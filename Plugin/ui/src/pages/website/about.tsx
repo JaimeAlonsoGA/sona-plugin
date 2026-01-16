@@ -2,16 +2,14 @@
  * About Page
  * 
  * Information about SONA - Website Style
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, Heart, Zap, Users } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
-import { Link, useNavigate } from 'react-router-dom'
-import { useBeta } from '@/hooks/use-beta'
-import { BetaModal } from '@/components/landing/beta-modal'
+import { Link } from 'react-router-dom'
+import { useAccessGate } from '@/hooks/use-access-gate'
 
 const VALUES = [
   {
@@ -37,24 +35,10 @@ const VALUES = [
 ]
 
 export default function AboutPage() {
-  const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
-  const navigate = useNavigate()
-  const { hasBetaAccess } = useBeta()
-
-  const handleCTA = () => {
-    if (hasBetaAccess) {
-      navigate('/download')
-    } else {
-      setIsBetaModalOpen(true)
-    }
-  }
+  const { handleProtectedAction } = useAccessGate()
 
   return (
-    <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-      {/* Grain overlay */}
-      <div className="grain-overlay" />
-
-      <LandingNav />
+    <>
       <section className="bg-gradient-to-br from-[var(--sona-designer)] to-black relative pt-24 sm:pt-32 lg:pt-40 overflow-hidden">
         {/* Background Glow Effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
@@ -214,7 +198,7 @@ export default function AboutPage() {
                 Join the beta and get 1,000 free tokens to explore all of Sona's AI-powered audio generation capabilities.
               </p>
               <button
-                onClick={handleCTA}
+                onClick={handleProtectedAction}
                 className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
               >
                 {/* <Sparkles className="w-5 h-5" /> */}
@@ -224,14 +208,6 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-
-      <LandingFooter />
-
-      {/* Beta Modal */}
-      <BetaModal 
-        isOpen={isBetaModalOpen} 
-        onClose={() => setIsBetaModalOpen(false)} 
-      />
-    </div>
+    </>
   )
 }

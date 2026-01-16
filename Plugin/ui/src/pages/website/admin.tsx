@@ -7,6 +7,9 @@
  * - User feedback/reports
  * - Financial analytics
  * - Admin user management
+ * 
+ * Note: This page handles its own auth checks internally.
+ * Nav, Footer, and BetaModal are provided by WebsiteLayout for consistent rendering.
  */
 
 import { useState } from 'react'
@@ -41,8 +44,6 @@ import {
   AlertTriangle,
   Mail,
 } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
 import {
   useAdminAccess,
   useAdminStats,
@@ -1381,8 +1382,7 @@ export default function AdminPage() {
   // Not an admin
   if (!isAdmin) {
     return (
-      <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-        <LandingNav />
+      <>
         <div className="pt-32 pb-24 flex items-center justify-center">
           <div className="text-center">
             <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -1392,18 +1392,12 @@ export default function AdminPage() {
             </p>
           </div>
         </div>
-        <LandingFooter />
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-      {/* Grain overlay */}
-      <div className="grain-overlay" />
-
-      <LandingNav />
-
+    <>
       {/* Header */}
       <section className="bg-gradient-to-br from-[var(--sona-deep)] to-black relative pt-32 pb-8 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
@@ -1471,8 +1465,6 @@ export default function AdminPage() {
           </AnimatePresence>
         </div>
       </main>
-
-      <LandingFooter />
-    </div>
+    </>
   )
 }

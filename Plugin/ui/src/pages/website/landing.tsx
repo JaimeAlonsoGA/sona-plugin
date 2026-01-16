@@ -4,6 +4,9 @@
  * Public landing page for SONA - AI Audio Generation Plugin
  * Modern, clean design with gradient effects and animated elements
  * Closed Beta phase with registration modal
+ * 
+ * Note: This page is special and handles its own layout since it's the root route
+ * and needs full control over the page structure.
  */
 
 import { useState } from 'react'
@@ -60,7 +63,7 @@ export default function LandingPage() {
       <div className="grain-overlay mix-blend-overlay dark:mix-blend-overlay" />
 
       {/* Navigation */}
-      <LandingNav />
+      <LandingNav onDownload={handleCTA} />
 
       {/* Main Content */}
       <main>
@@ -89,7 +92,7 @@ export default function LandingPage() {
       {/* Footer */}
       <LandingFooter />
 
-      {/* Beta Registration Modal */}
+      {/* Beta Registration Modal - Fixed to viewport center */}
       <BetaModal isOpen={isBetaModalOpen} onClose={handleCloseBetaModal} />
     </div>
   )

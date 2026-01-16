@@ -3,16 +3,14 @@
  * 
  * Token-based pricing model with competitive SaaS features - Website Style
  * Pay-as-you-go with no subscriptions
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Zap, Shield, Infinity as InfinityIcon, Sparkles, AudioLines, Headphones, Disc } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
-import { Link, useNavigate } from 'react-router-dom'
-import { useBeta } from '@/hooks/use-beta'
-import { BetaModal } from '@/components/landing/beta-modal'
+import { Link } from 'react-router-dom'
+import { useAccessGate } from '@/hooks/use-access-gate'
 
 // Token pricing tiers - synced with TOKEN_PACKAGES in lib/api/tokens.ts
 const PRICING_TIERS = [
@@ -151,22 +149,10 @@ const FAQ_ITEMS = [
 ]
 
 export default function PricingPage() {
-    const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
-    const navigate = useNavigate()
-    const { hasBetaAccess } = useBeta()
-
-    const handleCTA = () => {
-        if (hasBetaAccess) {
-            navigate('/download')
-        } else {
-            setIsBetaModalOpen(true)
-        }
-    }
+    const { handleProtectedAction, hasAccess } = useAccessGate()
 
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-            <LandingNav />
-
+        <>
             {/* Hero Section */}
             <section className="bg-gradient-to-br to-landing-bg-dark/80 from-primary/80 mb-8 md:mb-16 relative pt-24 sm:pt-32 lg:pt-40 overflow-hidden">
                 {/* Background Glow Effects */}
@@ -243,7 +229,7 @@ export default function PricingPage() {
                             <Sparkles className="w-5 h-5 text-primary" />
                             <span className="font-bold text-primary">Beta Bonus</span>
                         </div> */}
-                        {hasBetaAccess ?
+                        {hasAccess ?
                             <p className="text-lg">
                                 You have claimed <span className="font-bold text-primary">1000 tokens</span> for becoming a SONA tester during the beta period. <Link to="/download" className="text-blue-500 hover:underline">Download the plugin</Link> and start generating!
                             </p>
@@ -354,7 +340,7 @@ export default function PricingPage() {
 
                                 {/* CTA */}
                                 <button
-                                    onClick={handleCTA}
+                                    onClick={handleProtectedAction}
                                     className={`
                     w-full py-3 rounded-xl font-medium transition-all
                     ${tier.popular
@@ -503,7 +489,7 @@ export default function PricingPage() {
                             Join the beta and get 1000 free tokens to explore all of Sona's AI-powered audio generation capabilities.
                         </p>
                         <button
-                            onClick={handleCTA}
+                            onClick={handleProtectedAction}
                             className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                         >
                             {/* <Sparkles className="w-5 h-5" /> */}
@@ -512,14 +498,6 @@ export default function PricingPage() {
                     </motion.div>
                 </div>
             </section>
-
-            <LandingFooter />
-
-            {/* Beta Modal */}
-            <BetaModal
-                isOpen={isBetaModalOpen}
-                onClose={() => setIsBetaModalOpen(false)}
-            />
-        </div>
+        </>
     )
 }

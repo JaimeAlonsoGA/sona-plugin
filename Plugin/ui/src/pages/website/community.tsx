@@ -5,6 +5,8 @@
  * - Community stats (total users, generations)
  * - Activity feed (beta joins with witty messages)
  * - User posts section (tips, prompts, audio showcases)
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
 import { useState, useRef } from 'react'
@@ -25,11 +27,8 @@ import {
     Link2,
     Loader2
 } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
-import { useBeta } from '@/hooks/use-beta'
+import { useAccessGate } from '@/hooks/use-access-gate'
 import { useSession, useLatestJob } from '@/lib/hooks'
-import { BetaModal } from '@/components/landing/beta-modal'
 import {
     useCommunityStats,
     useCommunityActivity,
@@ -411,20 +410,19 @@ function CreatePostForm({ onClose }: { onClose: () => void }) {
 
 function PostsSection() {
     const [showCreateForm, setShowCreateForm] = useState(false)
-    const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
 
     const { data: session } = useSession()
-    const { hasBetaAccess } = useBeta()
+    const { hasAccess, openModal } = useAccessGate()
     const { data: posts, isLoading } = useCommunityPostsList(30)
     const deletePost = useDeleteCommunityPost()
 
     const handleCreateClick = () => {
         if (!session) {
-            setIsBetaModalOpen(true)
+            openModal()
             return
         }
-        if (!hasBetaAccess) {
-            setIsBetaModalOpen(true)
+        if (!hasAccess) {
+            openModal()
             return
         }
         setShowCreateForm(true)
@@ -456,7 +454,7 @@ function PostsSection() {
             </div>
 
             {/* Beta requirement notice */}
-            {!hasBetaAccess && (
+            {!hasAccess && (
                 <p className="text-sm text-landing-subtext-light dark:text-landing-subtext-dark mb-4">
                     <Sparkles className="w-4 h-4 inline mr-1" />
                     Join the beta to share posts with the community
@@ -465,7 +463,7 @@ function PostsSection() {
 
             {/* Create form */}
             <AnimatePresence>
-                {showCreateForm && hasBetaAccess && (
+                {showCreateForm && hasAccess && (
                     <CreatePostForm onClose={() => setShowCreateForm(false)} />
                 )}
             </AnimatePresence>
@@ -496,9 +494,6 @@ function PostsSection() {
                     </p>
                 </div>
             )}
-
-            {/* Beta Modal */}
-            <BetaModal isOpen={isBetaModalOpen} onClose={() => setIsBetaModalOpen(false)} />
         </div>
     )
 }
@@ -532,12 +527,7 @@ function formatRelativeTime(dateString: string): string {
 
 export default function CommunityPage() {
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-            {/* Grain overlay */}
-            <div className="grain-overlay" />
-
-            <LandingNav />
-
+        <>
             {/* Hero Section */}
             <section className="bg-gradient-to-br from-[var(--sona-creator)] via-[var(--sona-producer)] to-[var(--sona-designer)] relative pt-24 sm:pt-32 lg:pt-40 overflow-hidden">
                 {/* Background Glow Effects */}
@@ -581,8 +571,6 @@ export default function CommunityPage() {
                     </div>
                 </div>
             </main>
-
-            <LandingFooter />
-        </div>
+        </>
     )
 }

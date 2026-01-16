@@ -12,12 +12,13 @@ import { lazy, Suspense, useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSession } from '../lib/hooks'
 import { useBridge } from '../lib/bridge'
-import { useBeta, BetaProvider } from '../hooks/use-beta'
+import { BetaProvider } from '../hooks/use-beta'
 import { AnnouncementModal } from '../components/AnnouncementModal'
 import { CommandPalette } from '../components/CommandPalette'
 import { SonaProvider } from '../hooks/use-sona-state'
 import { WEBSITE_ROUTES, PLUGIN_ROUTES } from '../lib/navigation'
 import { ToastProvider, ErrorBoundary } from '../components/shared'
+import { WebsiteLayout } from '../layouts'
 
 // Lazy load pages for better performance
 const LandingPage = lazy(() => import('../pages/website/landing'))
@@ -135,28 +136,6 @@ const ProtectedPluginRoute = () => {
   return <PluginLayout />
 }
 
-// Protected route for beta access (landing pages like /download)
-const BetaProtectedRoute = () => {
-  const { data: session, isLoading: sessionLoading } = useSession()
-  const { hasBetaAccess, isLoading: betaLoading } = useBeta()
-
-  if (sessionLoading || betaLoading) {
-    return <LandingLoader />
-  }
-
-  // Not logged in -> redirect to home
-  if (!session) {
-    return <Navigate to="/" replace />
-  }
-
-  // Logged in but no beta access -> redirect to home
-  if (!hasBetaAccess) {
-    return <Navigate to="/" replace />
-  }
-
-  return <Outlet />
-}
-
 // Public route wrapper - redirects to home if already authenticated (for plugin auth page)
 const PublicRoute = () => {
   const { isInPlugin } = useBridge()
@@ -212,10 +191,111 @@ const router = createBrowserRouter([
       },
 
       // ==========================================
-      // LANDING ROUTES (Web - Public on sona.audio)
+      // WEBSITE ROUTES (Web - Public on sona.audio)
+      // Uses WebsiteLayout with shared Nav, Footer, and BetaModal
       // ==========================================
+      {
+        element: (
+          <LandingSuspenseWrapper>
+            <WebsiteLayout />
+          </LandingSuspenseWrapper>
+        ),
+        children: [
+          // Public info pages
+          {
+            path: '/prompting',
+            element: (
+              <Suspense fallback={null}>
+                <PromptingGuidePage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/about',
+            element: (
+              <Suspense fallback={null}>
+                <AboutPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/feedback',
+            element: (
+              <Suspense fallback={null}>
+                <FeedbackPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/changelog',
+            element: (
+              <Suspense fallback={null}>
+                <ChangelogPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/pricing',
+            element: (
+              <Suspense fallback={null}>
+                <PricingPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/privacy',
+            element: (
+              <Suspense fallback={null}>
+                <PrivacyPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/terms',
+            element: (
+              <Suspense fallback={null}>
+                <TermsPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/contact',
+            element: (
+              <Suspense fallback={null}>
+                <ContactPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/community',
+            element: (
+              <Suspense fallback={null}>
+                <CommunityPage />
+              </Suspense>
+            ),
+          },
+          // Admin dashboard (protected by component itself)
+          {
+            path: '/admin',
+            element: (
+              <Suspense fallback={null}>
+                <AdminPage />
+              </Suspense>
+            ),
+          },
+          // Download page (uses ProtectedContent internally for beta access)
+          {
+            path: '/download',
+            element: (
+              <Suspense fallback={null}>
+                <DownloadPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
 
-      // Email confirmation callback
+      // Email confirmation callback (special - no layout)
       {
         path: '/auth/callback',
         element: (
@@ -223,105 +303,6 @@ const router = createBrowserRouter([
             <EmailConfirmationPage />
           </LandingSuspenseWrapper>
         ),
-      },
-
-      // Public info pages
-      {
-        path: '/prompting',
-        element: (
-          <LandingSuspenseWrapper>
-            <PromptingGuidePage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/about',
-        element: (
-          <LandingSuspenseWrapper>
-            <AboutPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/feedback',
-        element: (
-          <LandingSuspenseWrapper>
-            <FeedbackPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/changelog',
-        element: (
-          <LandingSuspenseWrapper>
-            <ChangelogPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/pricing',
-        element: (
-          <LandingSuspenseWrapper>
-            <PricingPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/privacy',
-        element: (
-          <LandingSuspenseWrapper>
-            <PrivacyPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/terms',
-        element: (
-          <LandingSuspenseWrapper>
-            <TermsPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/contact',
-        element: (
-          <LandingSuspenseWrapper>
-            <ContactPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      {
-        path: '/community',
-        element: (
-          <LandingSuspenseWrapper>
-            <CommunityPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-      
-      // Admin dashboard (protected by component itself)
-      {
-        path: '/admin',
-        element: (
-          <LandingSuspenseWrapper>
-            <AdminPage />
-          </LandingSuspenseWrapper>
-        ),
-      },
-
-      // Beta-protected landing routes
-      {
-        element: <BetaProtectedRoute />,
-        children: [
-          {
-            path: '/download',
-            element: (
-              <LandingSuspenseWrapper>
-                <DownloadPage />
-              </LandingSuspenseWrapper>
-            ),
-          },
-        ],
       },
 
       // ==========================================

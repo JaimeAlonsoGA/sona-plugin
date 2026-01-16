@@ -3,11 +3,13 @@
  * 
  * Private download page for SONA - AI Audio Generation Plugin
  * Modern, clean design with gradient effects and animated elements
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
+ * Uses ProtectedContent for beta access protection
  */
 
-import { LandingFooter } from "@/components/landing/landing-footer"
-import { LandingNav } from "@/components/landing/landing-nav"
 import { VersionBadge } from "@/components/shared/version-badge"
+import { ProtectedContent } from "@/components/shared"
 import { Download, CheckCircle, Monitor, Cpu, HardDrive, ChevronRight, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from "react-router-dom"
@@ -80,17 +82,12 @@ export default function DownloadPage() {
     const isMacSelected = selectedPlatform === 'mac';
 
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark transition-colors duration-300">
-            {/* Grain Overlay Effect */}
-            <div className="grain-overlay mix-blend-overlay dark:mix-blend-overlay" />
-
-            {/* Navigation */}
-            <LandingNav />
-
-            {/* Main Content */}
-            <main>
-                {/* Hero Section */}
-                <section className="bg-gradient-to-br to-landing-bg-dark/80 from-primary/80 mb-16 relative pt-32 lg:pt-40 overflow-hidden">
+        <ProtectedContent
+            title="Download SONA"
+            description="Access to downloads is exclusive to beta testers. Join our beta program to get early access to SONA."
+        >
+            {/* Hero Section */}
+            <section className="bg-gradient-to-br to-landing-bg-dark/80 from-primary/80 mb-16 relative pt-32 lg:pt-40 overflow-hidden">
                     {/* Background Glow Effects */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
                         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
@@ -308,10 +305,6 @@ export default function DownloadPage() {
                         </div>
                     </div>
                 </section>
-            </main>
-
-            {/* Footer */}
-            <LandingFooter />
-        </div>
+        </ProtectedContent>
     )
 }

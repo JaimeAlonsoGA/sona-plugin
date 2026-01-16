@@ -3,9 +3,9 @@
  */
 
 // Main Landing Page Components
-export { Hero } from './hero'
+export { Hero } from './Hero'
 export { ProductIntro } from './product-intro'
-export { Features } from './features'
+export { Features } from './Features'
 export { ModeSelector } from './mode-selector'
 export { AudioShowcase } from './audio-showcase'
 export { Pricing } from './pricing'

@@ -22,3 +22,6 @@ export * from './icons'
 // Toast & Error Handling
 export { ToastProvider, useToast, ErrorBoundary } from './toast'
 export type { Toast, ToastType } from './toast'
+
+// Protected Content
+export { ProtectedContent } from './protected-content'

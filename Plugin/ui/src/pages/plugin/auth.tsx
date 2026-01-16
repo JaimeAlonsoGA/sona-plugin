@@ -201,7 +201,7 @@ export default function AuthPage() {
 
         {/* Footer */}
         <p className="text-center text-[var(--sona-text-subtle)] text-[10px] tracking-widest mt-12">
-          Powered by Cloudcom
+          Created by AI Was A Mistake .ai
         </p>
       </motion.div>
     </div>

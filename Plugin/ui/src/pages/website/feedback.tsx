@@ -2,19 +2,19 @@
  * Feedback Page
  * 
  * Protected page for beta testers to submit feedback.
- * Requires authentication - redirects to landing if not logged in.
+ * Uses ProtectedContent to show beta modal if user doesn't have access.
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Check, AlertCircle, Music, Link2, MessageSquare, Bug, Lightbulb, Sparkles, Loader2 } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
-import { BetaModal } from '@/components/landing/beta-modal'
 import { useSession, useSubmitReport, useLatestJob } from '@/lib/hooks'
 import type { FeedbackType } from '@/lib/api/reports'
 import { VersionBadge } from '@/components/shared/version-badge'
+import { ProtectedContent } from '@/components/shared'
 
 const FEEDBACK_TYPES = [
   {
@@ -44,10 +44,9 @@ const FEEDBACK_TYPES = [
 ]
 
 export default function FeedbackPage() {
-  const { data: session, isLoading: sessionLoading } = useSession()
+  const { data: session } = useSession()
   const { data: latestJob, isLoading: isLoadingJob } = useLatestJob()
   const submitReportMutation = useSubmitReport()
-  const [isBetaModalOpen, setIsBetaModalOpen] = useState(false)
 
   const [feedbackType, setFeedbackType] = useState<FeedbackType>('general')
   const [message, setMessage] = useState('')
@@ -69,13 +68,6 @@ export default function FeedbackPage() {
       setIncludeLastGeneration(false)
     }
   }, [feedbackType])
-
-  // Show login modal if not authenticated (instead of redirecting)
-  useEffect(() => {
-    if (!sessionLoading && !session) {
-      setIsBetaModalOpen(true)
-    }
-  }, [session, sessionLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,23 +107,9 @@ export default function FeedbackPage() {
     return prompt.substring(0, maxLength) + '...'
   }
 
-  // Loading state
-  if (sessionLoading) {
-    return (
-      <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-      {/* Grain overlay */}
-      <div className="grain-overlay" />
-
-      <LandingNav />
-
-      {/* Header */}
+    <>
+      {/* Header - Always visible */}
       <section className="bg-gradient-to-br from-[var(--sona-creator)] to-black relative pt-32 lg:pt-40 overflow-hidden">
         {/* Background Glow Effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
@@ -161,8 +139,14 @@ export default function FeedbackPage() {
           </div>
         </div>
       </section>
-      <main className="relative z-10 pt-32 pb-24">
-        <div className="max-w-2xl mx-auto px-6">
+
+      {/* Protected Content - Shows access required message if not authenticated/beta */}
+      <ProtectedContent
+        title="Beta Access Required"
+        description="Submit feedback is available exclusively to beta testers. Join the beta to help us improve SONA!"
+      >
+        <main className="relative z-10 pt-32 pb-24">
+          <div className="max-w-2xl mx-auto px-6">
 
           {/* Card Container */}
           <motion.div
@@ -412,14 +396,7 @@ export default function FeedbackPage() {
           </motion.div>
         </div>
       </main>
-
-      <LandingFooter />
-
-      {/* Beta Modal for login/signup */}
-      <BetaModal 
-        isOpen={isBetaModalOpen} 
-        onClose={() => setIsBetaModalOpen(false)} 
-      />
-    </div>
+      </ProtectedContent>
+    </>
   )
 }

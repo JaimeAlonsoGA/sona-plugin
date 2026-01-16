@@ -3,12 +3,12 @@
  * 
  * Version history and release notes - Website Style
  * Following Keep a Changelog (https://keepachangelog.com/) standards
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
 import { motion } from 'framer-motion'
 import { Clock, Plus, Wrench, Bug, Trash2, Sparkles } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
 import { Link } from 'react-router-dom'
 
 type ChangeType = 'added' | 'changed' | 'fixed' | 'removed' | 'improved'
@@ -179,12 +179,7 @@ function ReleaseCard({ release, index }: { release: Release; index: number }) {
 
 export default function ChangelogPage() {
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-            {/* Grain overlay */}
-            <div className="grain-overlay" />
-
-            <LandingNav />
-
+        <>
             {/* Hero Section */}
 
             <section className="bg-gradient-to-br from-[var(--sona-designer)] via-[var(--sona-creator)] to-[var(--sona-producer)] relative pt-24 sm:pt-32 lg:pt-40 overflow-hidden">
@@ -247,8 +242,6 @@ export default function ChangelogPage() {
                     </p>
                 </motion.div>
             </main >
-
-            <LandingFooter />
-        </div >
+        </>
     )
 }

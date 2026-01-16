@@ -3,12 +3,12 @@
  * 
  * Contact information with different purposes and channels.
  * Website Style - Based on feedback page design.
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
 import { motion } from 'framer-motion'
 import { Mail, MessageSquare, Code2, ExternalLink, Coffee, Blend } from 'lucide-react'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
 import { Link, useNavigate } from 'react-router-dom'
 
 // Contact channels
@@ -76,12 +76,7 @@ export default function ContactPage() {
     }
 
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-            {/* Grain overlay */}
-            <div className="grain-overlay" />
-
-            <LandingNav />
-
+        <>
             {/* Header */}
             <section className="bg-gradient-to-br from-[var(--sona-designer)] to-black relative pt-24 sm:pt-32 lg:pt-40 overflow-hidden">
                 {/* Background Glow Effects */}
@@ -243,8 +238,6 @@ export default function ContactPage() {
                     </motion.div>
                 </div>
             </main>
-
-            <LandingFooter />
-        </div>
+        </>
     )
 }

@@ -1,19 +1,14 @@
 /**
  * Terms of Service Page
+ * 
+ * Note: Nav, Footer, and BetaModal are provided by WebsiteLayout
  */
 
 import { motion } from 'framer-motion'
-import { LandingNav } from '@/components/landing/landing-nav'
-import { LandingFooter } from '@/components/landing/landing-footer'
 
 export default function TermsPage() {
     return (
-        <div className="landing-page min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark text-landing-text-light dark:text-landing-text-dark">
-            {/* Grain overlay */}
-            <div className="grain-overlay" />
-
-            <LandingNav />
-
+        <>
             <section className="bg-gradient-to-br from-[var(--sona-designer)] to-black relative pt-32 lg:pt-40 overflow-hidden pb-16">
                 {/* Background Glow Effects */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
@@ -85,8 +80,6 @@ export default function TermsPage() {
                     </section>
                 </motion.div>
             </main>
-
-            <LandingFooter />
-        </div>
+        </>
     )
 }
