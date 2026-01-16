@@ -7,7 +7,7 @@
 import { WorkerConfig } from '../types.js';
 import { AudioClient } from './base.js';
 import { StableAudio2Client } from './stable-audio-2.js';
-import { StableAudioOpenClient } from './stable-audio-open.js';
+import { TangoFluxClient } from './tango-flux.js';
 import { logger } from '../logger.js';
 
 /**
@@ -24,7 +24,7 @@ export function createAudioClient(mode: string, config: WorkerConfig): AudioClie
         case 'designer':
             // Designer mode uses TangoFlux via Replicate (sound effects)
             logger.info('Using Stable Audio Open (TangoFlux) client for designer mode');
-            return new StableAudioOpenClient(config);
+            return new TangoFluxClient(config);
 
         case 'creator':
             // Creator mode uses Stable Audio 2.5 (songs)

@@ -6,29 +6,24 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { getCostBreakdown, type GenerationCostParams } from '../../lib/token-costs'
+import { 
+    getCostBreakdown, 
+    formatDuration,
+    type GenerationCostParams, 
+    type GenerationTier,
+    type QualityLevel 
+} from '../../lib/token-costs'
 import { useUserTokens } from '../../lib/hooks'
-import type { QualityLevel } from './generation-settings'
 
 interface TokenCostIndicatorProps {
     /** Duration in seconds */
     duration: number
     /** Quality level (draft, standard, high) */
     quality: QualityLevel
-    /** Current mode for styling */
-    mode: 'designer' | 'producer' | 'creator'
+    /** Current mode/tier for cost calculation and styling */
+    mode: GenerationTier
     /** Compact mode for smaller displays */
     compact?: boolean
-}
-
-/**
- * Maps UI quality to cost calculation quality
- * draft -> standard (same cost tier)
- * standard -> standard
- * high -> high
- */
-function mapQuality(quality: QualityLevel): 'standard' | 'high' {
-    return quality === 'high' ? 'high' : 'standard'
 }
 
 export function TokenCostIndicator({
@@ -40,8 +35,9 @@ export function TokenCostIndicator({
     const { data: userTokens, isLoading } = useUserTokens()
 
     const costParams: GenerationCostParams = {
+        tier: mode,
         duration,
-        quality: mapQuality(quality),
+        quality,
     }
 
     const breakdown = getCostBreakdown(costParams)
@@ -152,7 +148,7 @@ function CompactIndicator({
 /**
  * Token icon SVG
  */
-function TokenIcon({ color, size = 30 }: { color: string; size?: number }) {
+export function TokenIcon({ color, size = 30 }: { color: string; size?: number }) {
     return (
         <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
             {/* Outer ring */}
@@ -191,29 +187,33 @@ function TokenIcon({ color, size = 30 }: { color: string; size?: number }) {
 export function TokenCostBreakdown({
     duration,
     quality,
-}: Omit<TokenCostIndicatorProps, 'mode' | 'compact'>) {
+    mode,
+}: Omit<TokenCostIndicatorProps, 'compact'>) {
     const costParams: GenerationCostParams = {
+        tier: mode,
         duration,
-        quality: mapQuality(quality),
+        quality,
     }
 
     const breakdown = getCostBreakdown(costParams)
+    const tierLabel = mode.charAt(0).toUpperCase() + mode.slice(1)
+    const qualityLabel = quality === 'high' ? 'HQ' : quality === 'standard' ? 'Standard' : 'Draft'
 
     return (
         <div className="text-xs space-y-1">
             <div className="flex justify-between gap-4">
-                <span className="text-[var(--sona-text-muted)]">Base cost</span>
+                <span className="text-[var(--sona-text-muted)]">{tierLabel} base</span>
                 <span className="tabular-nums">{breakdown.base}</span>
             </div>
             {breakdown.duration > 0 && (
                 <div className="flex justify-between gap-4">
-                    <span className="text-[var(--sona-text-muted)]">Duration ({duration}s)</span>
+                    <span className="text-[var(--sona-text-muted)]">Duration ({formatDuration(duration)})</span>
                     <span className="tabular-nums">+{breakdown.duration}</span>
                 </div>
             )}
             {breakdown.quality > 0 && (
                 <div className="flex justify-between gap-4">
-                    <span className="text-[var(--sona-text-muted)]">HQ quality</span>
+                    <span className="text-[var(--sona-text-muted)]">{qualityLabel} quality</span>
                     <span className="tabular-nums">+{breakdown.quality}</span>
                 </div>
             )}

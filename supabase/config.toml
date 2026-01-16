@@ -31,9 +31,10 @@ file_size_limit = "50MB"
 
 [auth]
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used in emails.
-site_url = "http://localhost:5173"
+# Plugin app lives on subdomain plugin.sona.audio, landing page on sona.audio
+site_url = "https://plugin.sona.audio"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://localhost:5173"]
+additional_redirect_urls = ["https://plugin.sona.audio", "https://sona.audio", "http://localhost:5173"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (one week).
 jwt_expiry = 3600
 # Allow/disallow new user signups to your project.
@@ -57,10 +58,24 @@ verify_jwt = false
 # Disable gateway JWT verification - we handle auth in the function itself
 verify_jwt = false
 
+[functions.submit-report]
+# Disable gateway JWT verification - we handle auth in the function itself
+verify_jwt = false
+
 [functions.stripe-checkout]
 # Disable gateway JWT verification - we handle auth in the function itself
 verify_jwt = false
 
 [functions.stripe-webhook]
 # Webhooks don't have user JWT - they use Stripe signature verification
+verify_jwt = false
+
+[functions.beta-approval]
+# Admin-only function - should be called from admin dashboard with service role
+# Could add additional auth checks in the function
+verify_jwt = false
+
+[functions.send-report-response]
+# Admin-only function - should be called from admin dashboard with service role
+# Could add additional auth checks in the function
 verify_jwt = false

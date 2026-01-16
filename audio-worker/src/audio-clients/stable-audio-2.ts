@@ -90,6 +90,7 @@ export class StableAudio2Client extends BaseAudioClient {
             formData.append('steps', String(steps));
             formData.append('output_format', 'wav');
             formData.append('model', 'stable-audio-2.5');
+            formData.append('cfg_scale', 2);
 
             // Future: Add audio input support when API supports it
             if (audioInput) {

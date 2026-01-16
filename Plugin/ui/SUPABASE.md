@@ -144,7 +144,17 @@ All environment variables are typed in `vite-env.d.ts` for TypeScript support:
 
 - `VITE_SUPABASE_URL` - Your Supabase project URL (required)
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key (required)
-- `VITE_LOCAL_HOST` - Local development host (optional)
+- `VITE_APP_URL` - Plugin app URL: `https://plugin.sona.audio` (required)
+- `VITE_LANDING_URL` - Landing page URL: `https://sona.audio` (optional)
+- `VITE_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (optional)
+
+## Domain Structure
+
+| Domain | Purpose |
+|--------|---------|
+| `sona.audio` | Landing page & marketing |
+| `plugin.sona.audio` | Plugin web app |
+| `localhost:5173` | Local development |
 
 ## Security
 

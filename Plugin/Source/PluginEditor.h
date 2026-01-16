@@ -15,6 +15,9 @@ public:
 private:
     SonaProcessor& processorRef;
     
+    // Función para establecer el icono de la ventana
+    void setIcon();
+    
     // Función nativa para recibir mensajes desde JavaScript
     std::optional<juce::WebBrowserComponent::Resource> getResource(const juce::String& url);
     void handleMessageFromUI(const juce::var& message);

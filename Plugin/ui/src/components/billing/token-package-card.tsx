@@ -29,7 +29,7 @@ export function TokenPackageCard({
       whileTap={{ scale: 0.98 }}
       onClick={!isLoading ? onPurchase : undefined}
       className={`
-        relative cursor-pointer
+        relative cursor-pointer flex justify-between flex-col
         bg-[var(--sona-surface)] border rounded-2xl p-4
         transition-all duration-300
         ${pkg.popular 
@@ -87,9 +87,9 @@ export function TokenPackageCard({
         `}
       >
         {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <LoadingSpinner />
-            Processing...
+          <span className="flex items-center justify-center">
+            {/* <LoadingSpinner /> */}
+            Processing
           </span>
         ) : (
           'Buy Now'
@@ -97,13 +97,13 @@ export function TokenPackageCard({
       </button>
 
       {/* Value indicator */}
-      {pkg.id === 'tokens_1000' && (
+      {/* {pkg.id === 'tokens_1000' && (
         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
           <span className="bg-[var(--sona-sage)] text-[var(--sona-void)] text-[9px] font-semibold px-2 py-0.5 rounded-full">
             Best Value
           </span>
         </div>
-      )}
+      )} */}
     </motion.div>
   )
 }
@@ -124,11 +124,4 @@ function TokenIcon() {
   )
 }
 
-function LoadingSpinner() {
-  return (
-    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-      <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  )
-}
+// LoadingSpinner removed - was unused

@@ -84,7 +84,7 @@ export function TokenBalance({ balance, isLoading }: TokenBalanceProps) {
       {/* Token usage info */}
       <div className="relative mt-4 pt-4 border-t border-[var(--sona-border)]">
         <p className="text-[var(--sona-text-subtle)] text-xs">
-          Each audio generation costs <span className="text-[var(--sona-text-muted)]">18~23 tokens</span>
+          Each audio generation costs <span className="text-[var(--sona-text-muted)]">~18 tokens</span>
         </p>
       </div>
     </Card>

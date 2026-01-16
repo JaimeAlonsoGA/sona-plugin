@@ -9,7 +9,7 @@
  */
 
 import { motion } from 'framer-motion'
-import { AudioLines, Headphones, Music } from 'lucide-react'
+import { AudioLines, Disc, Headphones } from 'lucide-react'
 
 export type GenerationMode = 'designer' | 'producer' | 'creator'
 
@@ -22,7 +22,7 @@ interface ModeSwitchProps {
 const MODES: { value: GenerationMode; label: string; icon: typeof AudioLines }[] = [
   { value: 'designer', label: 'Designer', icon: AudioLines },
   { value: 'producer', label: 'Producer', icon: Headphones },
-  { value: 'creator', label: 'Creator', icon: Music },
+  { value: 'creator', label: 'Creator', icon: Disc },
 ]
 
 function getModeColor(mode: GenerationMode): string {

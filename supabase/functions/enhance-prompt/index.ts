@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import OpenAI from 'https://esm.sh/openai@4.28.0'
+import OpenAI from 'https://esm.sh/openai@4.96.0'
 
 // CORS headers for web requests
 const corsHeaders = {
@@ -217,18 +217,35 @@ serve(async (req: Request) => {
     const openai = new OpenAI({ apiKey: openaiApiKey })
     const mode = body.mode || 'designer'
     
+    // Build full prompt with system context for Responses API
+    const systemPrompt = buildSystemPrompt(mode)
+    const fullPrompt = `${systemPrompt}\n\nUser prompt to enhance:\n${body.prompt.trim()}`
+    
+    console.log('Calling OpenAI Responses API to enhance prompt:', {
+      mode,
+      originalPrompt: body.prompt.trim(),
+      model: 'gpt-5-nano-2025-08-07',
+    })
+    
     try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-5-nano-2025-08-07', // Fast and cheap model for simple enhancement
-        messages: [
-          { role: 'system', content: buildSystemPrompt(mode) },
-          { role: 'user', content: body.prompt.trim() }
-        ],
-        max_tokens: 200,
-        temperature: 0.7,
+      // Use Responses API (same as audio-worker) instead of Chat Completions
+      const response = await openai.responses.create({
+        model: 'gpt-5-nano-2025-08-07',
+        input: fullPrompt,
+        reasoning: { effort: 'minimal' },
+        text: { verbosity: 'low' },
+        max_output_tokens: 200,
       })
 
-      const enhancedPrompt = response.choices[0]?.message?.content?.trim() || body.prompt
+      const content = response.output_text
+
+      console.log('OpenAI Responses API response:', {
+        hasContent: !!content,
+        contentLength: content?.length,
+        contentPreview: content?.substring(0, 100),
+      })
+
+      const enhancedPrompt = content?.trim() || body.prompt
 
       console.log('Prompt enhanced successfully', {
         userId: user.id,

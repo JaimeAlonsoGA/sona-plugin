@@ -18,3 +18,7 @@ export type { DurationPreset, DurationValue, DurationContext } from './duration-
 export { ProducerSettings, BPMSelector, calculateDuration, DEFAULT_PRODUCER_CONFIG } from './producer-settings'
 export type { ProducerConfig, TimeSignature, BPMSelectorProps } from './producer-settings'
 export * from './icons'
+
+// Toast & Error Handling
+export { ToastProvider, useToast, ErrorBoundary } from './toast'
+export type { Toast, ToastType } from './toast'

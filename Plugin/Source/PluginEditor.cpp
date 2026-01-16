@@ -1,5 +1,6 @@
 #include "PluginEditor.h"
 #include <juce_core/juce_core.h>
+#include "BinaryData.h"
 
 // Constantes para el tamaño del plugin (fijo, no redimensionable)
 constexpr int PLUGIN_WIDTH = 800;
@@ -9,6 +10,9 @@ SonaEditor::SonaEditor(SonaProcessor& p)
     : AudioProcessorEditor(&p), processorRef(p)
 {
     addAndMakeVisible(webView);
+    
+    // Establecer el icono de la ventana standalone
+    setIcon();
     
     // Plugin de tamaño fijo - no redimensionable
     setResizable(false, false);
@@ -60,6 +64,16 @@ void SonaEditor::handleMessageFromUI(const juce::var& message)
             // Manejar solicitud de generación
             DBG("Generate request received");
         }
+        else if (type == "open-url")
+        {
+            // Abrir URL en el navegador del sistema
+            if (payload.isString())
+            {
+                auto url = payload.toString();
+                DBG("Opening URL in browser: " + url);
+                juce::URL(url).launchInDefaultBrowser();
+            }
+        }
         // Agregar más handlers según sea necesario
     }
 }
@@ -91,4 +105,31 @@ std::optional<juce::WebBrowserComponent::Resource> SonaEditor::getResource(const
     // }
     
     return std::nullopt;
+}
+
+void SonaEditor::setIcon()
+{
+    // Cargar el icono desde BinaryData y establecerlo como icono de la ventana
+    auto iconImage = juce::ImageFileFormat::loadFrom(
+        BinaryData::sonaicon_png, 
+        BinaryData::sonaicon_pngSize
+    );
+    
+    if (iconImage.isValid())
+    {
+        // Para standalone, establecer el icono de la ventana del sistema
+        if (auto* peer = getPeer())
+        {
+            peer->setIcon(iconImage);
+        }
+        
+        // También podemos usar el método de DocumentWindow si está en standalone
+        if (auto* topLevel = getTopLevelComponent())
+        {
+            if (auto* window = dynamic_cast<juce::DocumentWindow*>(topLevel))
+            {
+                window->setIcon(iconImage);
+            }
+        }
+    }
 }

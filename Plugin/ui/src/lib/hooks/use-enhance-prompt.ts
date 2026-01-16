@@ -24,9 +24,13 @@ interface EnhancePromptResponse {
  * Uses supabase.functions.invoke() which handles auth correctly
  */
 async function enhancePrompt(input: EnhancePromptInput): Promise<EnhancePromptResponse> {
+  console.log('[EnhancePrompt] Calling edge function with:', input)
+  
   const { data, error } = await supabase.functions.invoke<EnhancePromptResponse>('enhance-prompt', {
     body: input,
   })
+
+  console.log('[EnhancePrompt] Response:', { data, error })
 
   if (error) {
     console.error('Enhance prompt error:', error)
@@ -37,6 +41,7 @@ async function enhancePrompt(input: EnhancePromptInput): Promise<EnhancePromptRe
     throw new Error('No response from enhance-prompt function')
   }
 
+  console.log('[EnhancePrompt] Enhanced prompt:', data.enhancedPrompt)
   return data
 }
 

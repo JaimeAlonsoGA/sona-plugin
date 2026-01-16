@@ -7,13 +7,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Session } from '@supabase/supabase-js'
-import { 
-  signIn, 
-  signUp, 
-  signOut, 
-  generateAudio, 
+import {
+  signIn,
+  signUp,
+  signOut,
+  generateAudio,
   getSession,
-  onAuthStateChange 
+  onAuthStateChange
 } from '../supabase'
 import { useEffect } from 'react'
 import { jobQueryKeys } from './use-jobs'
@@ -46,12 +46,12 @@ export function useSession() {
  */
 export function useAuthStateListener() {
   const queryClient = useQueryClient()
-  
+
   useEffect(() => {
     const { unsubscribe } = onAuthStateChange((session: Session | null) => {
       // Update session cache when auth state changes
       queryClient.setQueryData(queryKeys.session, session)
-      
+
       // When auth state changes, invalidate all user-related queries
       // This ensures fresh data on login and cleanup on logout
       if (session) {
@@ -63,7 +63,7 @@ export function useAuthStateListener() {
         queryClient.removeQueries({ queryKey: queryKeys.user })
       }
     })
-    
+
     return () => {
       unsubscribe()
     }
@@ -78,9 +78,9 @@ export function useAuthStateListener() {
  */
 export function useSignIn(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => 
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
       signIn(email, password),
     onSuccess: (data) => {
       if (data.session) {
@@ -103,9 +103,9 @@ export function useSignIn(options?: { onSuccess?: () => void }) {
  */
 export function useSignUp(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => 
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
       signUp(email, password),
     onSuccess: (data) => {
       if (data.session) {
@@ -128,22 +128,22 @@ export function useSignUp(options?: { onSuccess?: () => void }) {
  */
 export function useSignOut(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: signOut,
     onSuccess: () => {
       // Clear session cache
       queryClient.setQueryData(queryKeys.session, null)
       queryClient.setQueryData(queryKeys.user, null)
-      
+
       // Remove all cached queries to prevent stale data on next login
       queryClient.removeQueries({ queryKey: queryKeys.session })
       queryClient.removeQueries({ queryKey: queryKeys.user })
       queryClient.removeQueries({ queryKey: jobQueryKeys.all })
-      
+
       // Clear the entire cache to ensure clean state
       queryClient.clear()
-      
+
       // Call custom onSuccess if provided
       options?.onSuccess?.()
     },
@@ -157,7 +157,7 @@ export function useSignOut(options?: { onSuccess?: () => void }) {
  */
 export function useGenerateAudio() {
   return useMutation({
-    mutationFn: ({ prompt, mode }: { prompt: string; mode: string }) => 
+    mutationFn: ({ prompt, mode }: { prompt: string; mode: string }) =>
       generateAudio(prompt, mode),
     onError: (error) => {
       console.error('Audio generation failed:', error)

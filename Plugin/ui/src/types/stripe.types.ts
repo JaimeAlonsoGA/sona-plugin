@@ -27,7 +27,7 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
   {
     id: 'tokens_200',
     name: 'Starter',
-    tokens: 200,
+    tokens: 150,
     price: 200, // $2.00
     priceDisplay: '$2',
     description: 'Perfect for trying out Sona',
@@ -36,21 +36,30 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
   {
     id: 'tokens_500',
     name: 'Creator',
-    tokens: 500,
+    tokens: 400,
     price: 500, // $5.00
     priceDisplay: '$5',
-    description: 'For regular sound creation',
+    description: 'For amazing sound creation',
     popular: true,
     stripePriceId: 'price_1SlW3bGcbqKE8HWQyNd3Wfk2', // Set after creating in Stripe
   },
   {
     id: 'tokens_1000',
     name: 'Producer',
-    tokens: 1000,
+    tokens: 900,
     price: 1000, // $10.00
     priceDisplay: '$10',
     description: 'Best value for power users',
     stripePriceId: 'price_1SlW3pGcbqKE8HWQ7N8zQ0JV', // Set after creating in Stripe
+  },
+  {
+    id: 'tokens_2000',
+    name: 'Studio',
+    tokens: 2000,
+    price: 2000, // $20.00
+    priceDisplay: '$20',
+    description: 'Enterprise package for studios',
+    stripePriceId: 'price_1SpBhsGcbqKE8HWQg6pR6LNY', // Set after creating in Stripe
   },
 ]
 

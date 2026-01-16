@@ -8,6 +8,7 @@
 interface IconProps {
   className?: string
   size?: number
+  style?: React.CSSProperties
 }
 
 export function PlayIcon({ className = '', size = 24 }: IconProps) {
@@ -342,7 +343,7 @@ export function CopyIcon({ className = '', size = 24 }: IconProps) {
   )
 }
 
-export function CheckIcon({ className = '', size = 24 }: IconProps) {
+export function CheckIcon({ className = '', size = 24, style }: IconProps) {
   return (
     <svg 
       width={size} 
@@ -354,6 +355,7 @@ export function CheckIcon({ className = '', size = 24 }: IconProps) {
       strokeLinecap="round" 
       strokeLinejoin="round"
       className={className}
+      style={style}
     >
       <polyline points="20 6 9 17 4 12" />
     </svg>

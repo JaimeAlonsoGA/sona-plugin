@@ -26,10 +26,15 @@ This document summarizes the implementation of Supabase client integration with 
 
 **Variables:**
 ```env
-VITE_SUPABASE_URL=https://ucxhzpxyjxuhlqmbomrv.supabase.co
-VITE_SUPABASE_ANON_KEY=ucxhzpxyjxuhlqmbomrv
-VITE_LOCAL_HOST=https://localhost:5173
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_APP_URL=https://plugin.sona.audio
+VITE_LANDING_URL=https://sona.audio
 ```
+
+**Domain Structure:**
+- `sona.audio` - Landing page (Vercel)
+- `plugin.sona.audio` - Plugin/App (Vercel subdomain)
 
 #### 4. Helper Functions Created
 

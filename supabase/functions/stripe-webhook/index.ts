@@ -19,10 +19,11 @@ const corsHeaders = {
 }
 
 // Token packages configuration (must match checkout function)
-const TOKEN_PACKAGES: Record<string, { tokens: number; name: string }> = {
-  'tokens_200': { tokens: 200, name: 'Starter (200 tokens)' },
-  'tokens_500': { tokens: 500, name: 'Creator (500 tokens)' },
-  'tokens_1000': { tokens: 1000, name: 'Producer (1000 tokens)' },
+const TOKEN_PACKAGES: Record<string, { tokens: number; name: string; price: number }> = {
+  'tokens_200': { tokens: 150, name: 'Starter (200 tokens)', price: 200 },
+  'tokens_500': { tokens: 400, name: 'Creator (500 tokens)', price: 500 },
+  'tokens_1000': { tokens: 900, name: 'Producer (1000 tokens)', price: 1000 },
+  'tokens_2000': { tokens: 2000, name: 'Studio (2000 tokens)', price: 2000 },
 }
 
 serve(async (req: Request) => {
@@ -124,6 +125,43 @@ serve(async (req: Request) => {
           // Log for manual investigation
         } else {
           console.log(`Successfully added ${tokens} tokens to user ${userId}`)
+          
+          // Get user email and send purchase confirmation (fire and forget)
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('email, token_balance')
+              .eq('id', userId)
+              .single()
+            
+            if (profile?.email) {
+              // Get amount paid from session
+              const amountPaid = session.amount_total ? (session.amount_total / 100) : 0
+              const currency = session.currency?.toUpperCase() || 'USD'
+              
+              fetch(`${supabaseUrl}/functions/v1/send-token-purchase`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                },
+                body: JSON.stringify({
+                  userEmail: profile.email,
+                  tokenAmount: tokens,
+                  packageName: tokenPackage.name,
+                  amountPaid: amountPaid,
+                  currency: currency,
+                  newBalance: profile.token_balance,
+                  transactionId: session.payment_intent as string || session.id,
+                }),
+              }).catch(err => console.error('Email notification error:', err))
+              
+              console.log(`Purchase confirmation email triggered for ${profile.email}`)
+            }
+          } catch (emailError) {
+            console.error('Failed to trigger purchase email:', emailError)
+            // Don't fail the webhook if email fails
+          }
         }
 
         break
@@ -166,6 +204,42 @@ serve(async (req: Request) => {
           console.error('Failed to update user tokens from PaymentIntent:', updateError)
         } else {
           console.log(`Successfully added ${tokens} tokens to user ${userId} from PaymentIntent`)
+          
+          // Get user email and send purchase confirmation (fire and forget)
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('email, token_balance')
+              .eq('id', userId)
+              .single()
+            
+            if (profile?.email) {
+              const amountPaid = paymentIntent.amount ? (paymentIntent.amount / 100) : 0
+              const currency = paymentIntent.currency?.toUpperCase() || 'USD'
+              
+              fetch(`${supabaseUrl}/functions/v1/send-token-purchase`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                },
+                body: JSON.stringify({
+                  userEmail: profile.email,
+                  tokenAmount: tokens,
+                  packageName: tokenPackage.name,
+                  amountPaid: amountPaid,
+                  currency: currency,
+                  newBalance: profile.token_balance,
+                  transactionId: paymentIntent.id,
+                }),
+              }).catch(err => console.error('Email notification error:', err))
+              
+              console.log(`Purchase confirmation email triggered for ${profile.email}`)
+            }
+          } catch (emailError) {
+            console.error('Failed to trigger purchase email:', emailError)
+            // Don't fail the webhook if email fails
+          }
         }
 
         break

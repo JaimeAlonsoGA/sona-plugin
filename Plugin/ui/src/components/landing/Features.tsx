@@ -1,223 +1,166 @@
 /**
  * Features Section
  * 
- * Showcase Designer/Producer modes and key features
+ * AI Prompt Enhancer and Automatic Naming features
+ * with visual demonstrations
  */
 
-import { motion } from 'framer-motion'
-import { 
-  AudioLines, 
-  Headphones, 
-  Tags, 
-  Sliders, 
-  History, 
-  Sparkles,
-  Music,
-  Clock,
-  FileAudio
-} from 'lucide-react'
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-}
+import { CheckCircle, MoreVertical } from 'lucide-react'
+import generateImage from '../../assets/website-assets/generation.webp'
 
 export function Features() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-display font-medium text-[var(--sona-cream)] mb-4">
-            Two modes. One powerful workflow.
-          </h2>
-          <p className="text-[var(--sona-text-muted)] max-w-2xl mx-auto">
-            Whether you're designing cinematic soundscapes or producing musical loops, 
-            SONA adapts to your creative process.
-          </p>
-        </motion.div>
+    <section className="py-16 md:py-32 overflow-hidden" id="features">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 md:space-y-32">
+        {/* AI Prompt Enhancer */}
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+          {/* Visual Demo */}
+          <div className="w-full md:w-1/2 order-2 md:order-1">
+            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+              <img src={generateImage} alt="Generate Audio" className="w-full h-auto rounded-lg" />
+            </div>
+          </div>
 
-        {/* Mode cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-20">
-          {/* Designer Mode */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative p-8 rounded-2xl border overflow-hidden group"
-            style={{
-              background: 'linear-gradient(135deg, var(--sona-designer-soft) 0%, var(--sona-surface) 100%)',
-              borderColor: 'var(--sona-designer)',
-            }}
-          >
-            <div 
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-              style={{ background: 'radial-gradient(circle at 50% 50%, var(--sona-designer-glow) 0%, transparent 70%)' }}
-            />
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--sona-designer)]/20 flex items-center justify-center">
-                  <AudioLines className="w-6 h-6 text-[var(--sona-designer)]" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-[var(--sona-cream)]">Designer Mode</h3>
-                  <p className="text-sm text-[var(--sona-text-subtle)]">For sound designers & SFX artists</p>
-                </div>
-              </div>
-              
-              <p className="text-[var(--sona-text-muted)] mb-6">
-                Generate sound effects, ambiences, foley, and cinematic textures. 
-                Control duration in seconds and let AI optimize your prompts.
+          {/* Content */}
+          <div className="w-full md:w-1/2 order-1 md:order-2">
+            <div className="max-w-md mx-auto md:mx-0">
+              <span className="text-primary font-bold tracking-wider text-sm uppercase mb-2 block">
+                The Core
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-4 md:mb-6">Generate audio, for everything</h3>
+              <p className="text-landing-subtext-light dark:text-landing-subtext-dark text-base md:text-lg leading-relaxed mb-6 md:mb-8">
+                Yes, for everything. From Game Audio Sound Design to Podcast Backgrounds, from Punchy House Kick loops to Cinematic Orquestral Sountracks.
               </p>
-              
-              <ul className="space-y-3">
-                <FeatureItem icon={<Clock className="w-4 h-4" />} text="Duration: 3s to 60s" color="designer" />
-                <FeatureItem icon={<Tags className="w-4 h-4" />} text="UCS naming convention" color="designer" />
-                <FeatureItem icon={<FileAudio className="w-4 h-4" />} text="44.1kHz / 16bit WAV" color="designer" />
+              <ul className="space-y-3 md:space-y-4">
+                <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>Thought for professionals</span>
+                </li>
+                <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>Built versatile integrating 3 generative models</span>
+                </li>
               </ul>
             </div>
-          </motion.div>
-
-          {/* Producer Mode */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="relative p-8 rounded-2xl border overflow-hidden group"
-            style={{
-              background: 'linear-gradient(135deg, var(--sona-producer-soft) 0%, var(--sona-surface) 100%)',
-              borderColor: 'var(--sona-producer)',
-            }}
-          >
-            <div 
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-              style={{ background: 'radial-gradient(circle at 50% 50%, var(--sona-producer-glow) 0%, transparent 70%)' }}
-            />
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--sona-producer)]/20 flex items-center justify-center">
-                  <Headphones className="w-6 h-6 text-[var(--sona-producer)]" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-[var(--sona-cream)]">Producer Mode</h3>
-                  <p className="text-sm text-[var(--sona-text-subtle)]">For music producers & composers</p>
-                </div>
-              </div>
-              
-              <p className="text-[var(--sona-text-muted)] mb-6">
-                Create loops, stems, and musical elements synced to your project. 
-                Set BPM, time signature, and bars for perfect timing.
-              </p>
-              
-              <ul className="space-y-3">
-                <FeatureItem icon={<Music className="w-4 h-4" />} text="BPM & Time signature sync" color="producer" />
-                <FeatureItem icon={<Sliders className="w-4 h-4" />} text="Key & scale selection" color="producer" />
-                <FeatureItem icon={<Clock className="w-4 h-4" />} text="1-32 bars duration" color="producer" />
-              </ul>
-            </div>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Feature grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <FeatureCard
-            icon={<Sparkles className="w-5 h-5" />}
-            title="Enhanced Prompts"
-            description="AI-optimized prompts for better, more consistent results. Your ideas, perfected."
-          />
-          <FeatureCard
-            icon={<Tags className="w-5 h-5" />}
-            title="UCS Naming"
-            description="Auto-generate filenames using Universal Category System or custom conventions."
-          />
-          <FeatureCard
-            icon={<History className="w-5 h-5" />}
-            title="Generation History"
-            description="Access all your past creations. Download, replay, and iterate anytime."
-          />
-          <FeatureCard
-            icon={<Sliders className="w-5 h-5" />}
-            title="Quality Control"
-            description="Choose between Standard and High Quality generation modes."
-          />
-          <FeatureCard
-            icon={<Music className="w-5 h-5" />}
-            title="Musical Key"
-            description="Set root note and scale for harmonically coherent generations."
-          />
-          <FeatureCard
-            icon={<FileAudio className="w-5 h-5" />}
-            title="Pro Audio Output"
-            description="44.1kHz / 16bit WAV files ready for professional workflows."
-          />
-        </motion.div>
+        {/* Automatic Naming */}
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+          {/* Content */}
+          <div className="w-full md:w-1/2">
+            <div className="max-w-md mx-auto md:ml-auto md:mr-0">
+              <span className="text-primary font-bold tracking-wider text-sm uppercase mb-2 block">
+                Workflow
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-4 md:mb-6">Automatic Naming</h3>
+              <p className="text-landing-subtext-light dark:text-landing-subtext-dark text-base md:text-lg leading-relaxed mb-6 md:mb-8">
+                Never lose a sample named "Audio_01.wav" again. SONA analyzes the generated audio and applies intelligent naming conventions with user-custom parameters or built-in standard conventions like UCS or AES.
+              </p>
+            </div>
+          </div>
+
+          {/* Visual Demo */}
+          <div className="w-full md:w-1/2">
+            <div className="relative aspect-video md:aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex flex-col justify-center gap-3 sm:gap-4 group">
+              <div className="absolute inset-0 bg-gradient-to-bl from-sona-gold/5 to-transparent" />
+
+              {/* File Card 1 */}
+              <div className="relative z-10 bg-landing-bg-light dark:bg-landing-bg-dark rounded-xl p-4 border border-gray-200 dark:border-white/10 shadow-lg transform transition-all duration-500 group-hover:-translate-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* <FileAudio className="w-5 h-5 text-sona-gold" /> */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">ANIMALS_CatMiau_Sona_TangoFlux.wav</span>
+                      <span className="text-xs text-gray-500">2.4MB • WAV 16bit</span>
+                    </div>
+                  </div>
+                  <MoreVertical className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+
+              {/* File Card 2 */}
+              <div className="relative z-10 bg-landing-bg-light dark:bg-landing-bg-dark rounded-xl p-4 border border-gray-200 dark:border-white/10 shadow-lg opacity-60 transform scale-95 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* <FileAudio className="w-5 h-5 text-sona-gold" /> */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Loop_House_kick_Cmin_128.wav</span>
+                      <span className="text-xs text-gray-500">8.1MB • WAV 16bit</span>
+                    </div>
+                  </div>
+                  <MoreVertical className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+
+              {/* File Card 3 */}
+              <div className="relative z-10 bg-landing-bg-light dark:bg-landing-bg-dark rounded-xl p-4 border border-gray-200 dark:border-white/10 shadow-lg opacity-60 transform scale-95 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* <FileAudio className="w-5 h-5 text-sona-gold" /> */}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">SP_DarkPsytranceForest_Master_44k_16b.wav</span>
+                      <span className="text-xs text-gray-500">20.2MB • WAV 16bit</span>
+                    </div>
+                  </div>
+                  <MoreVertical className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+          {/* Visual Demo */}
+          <div className="w-full md:w-1/2 order-2 md:order-1">
+            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+              <div className="w-3/4 space-y-4 relative z-10 transition-transform duration-500 group-hover:scale-105">
+                {/* Prompt Input */}
+                <div className="h-10 bg-landing-bg-light dark:bg-landing-bg-dark rounded-lg w-full flex items-center px-4 border border-gray-200 dark:border-white/10 shadow-lg">
+                  <span className="text-xs text-gray-400 font-mono">Atmospheric pad in key of...</span>
+                </div>
+                {/* Waveform Visualization */}
+                <div className="h-24 bg-landing-bg-light dark:bg-landing-bg-dark rounded-lg w-full border border-gray-200 dark:border-white/10 shadow-lg p-3 flex items-center justify-center">
+                  <div className="flex items-end gap-1 h-12">
+                    <div className="w-1 bg-primary h-4 rounded-full" />
+                    <div className="w-1 bg-primary h-8 rounded-full" />
+                    <div className="w-1 bg-primary h-6 rounded-full" />
+                    <div className="w-1 bg-primary h-10 rounded-full" />
+                    <div className="w-1 bg-primary h-5 rounded-full" />
+                    <div className="w-1 bg-primary h-3 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="w-full md:w-1/2 order-1 md:order-2">
+            <div className="max-w-md mx-auto md:mx-0">
+              <span className="text-primary font-bold tracking-wider text-sm uppercase mb-2 block">
+                Extras
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-4 md:mb-6">AI Prompt Enhancer</h3>
+              <p className="text-landing-subtext-light dark:text-landing-subtext-dark text-base md:text-lg leading-relaxed mb-6 md:mb-8">
+                Stuck on a sound? Describe it loosely, and our GPT-powered engine expands your prompt into detailed sonic instructions, ensuring rich, textured results every time.
+              </p>
+              <ul className="space-y-3 md:space-y-4">
+                <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>Context-aware suggestions</span>
+                </li>
+                <li className="flex items-center gap-3 text-landing-subtext-light dark:text-landing-subtext-dark text-sm md:text-base">
+                  <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span>Technical terminology expansion</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
-  )
-}
-
-function FeatureItem({ 
-  icon, 
-  text, 
-  color 
-}: { 
-  icon: React.ReactNode
-  text: string
-  color: 'designer' | 'producer' 
-}) {
-  const colorClass = color === 'designer' ? 'text-[var(--sona-designer)]' : 'text-[var(--sona-producer)]'
-  
-  return (
-    <li className="flex items-center gap-3">
-      <span className={colorClass}>{icon}</span>
-      <span className="text-sm text-[var(--sona-text-muted)]">{text}</span>
-    </li>
-  )
-}
-
-function FeatureCard({ 
-  icon, 
-  title, 
-  description 
-}: { 
-  icon: React.ReactNode
-  title: string
-  description: string 
-}) {
-  return (
-    <motion.div
-      variants={itemVariants}
-      className="p-6 rounded-xl bg-[var(--sona-surface)] border border-[var(--sona-border)] hover:border-[var(--sona-muted)] transition-colors"
-    >
-      <div className="w-10 h-10 rounded-lg bg-[var(--sona-ember-glow)] flex items-center justify-center mb-4">
-        <span className="text-[var(--sona-ember)]">{icon}</span>
-      </div>
-      <h4 className="text-[var(--sona-cream)] font-medium mb-2">{title}</h4>
-      <p className="text-sm text-[var(--sona-text-muted)]">{description}</p>
-    </motion.div>
   )
 }

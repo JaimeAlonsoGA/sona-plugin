@@ -82,39 +82,6 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
     setLoop(isLooping)
   }, [isLooping, setLoop])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return
-
-      switch (e.code) {
-        case 'Space':
-          e.preventDefault()
-          toggle()
-          break
-        case 'ArrowLeft':
-          e.preventDefault()
-          skip(-5)
-          break
-        case 'ArrowRight':
-          e.preventDefault()
-          skip(5)
-          break
-        case 'KeyM':
-          e.preventDefault()
-          setIsMuted((m) => !m)
-          break
-        case 'KeyL':
-          e.preventDefault()
-          setIsLooping((l) => !l)
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [toggle, skip])
-
   const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value)
     setVolume(newVolume)
@@ -165,6 +132,82 @@ export function SonaPlayer({ audioUrl, filename = 'sona-audio', onReady }: SonaP
       console.error('Copy failed:', error)
     }
   }, [audioUrl])
+
+  // Listen for Command Palette events
+  useEffect(() => {
+    const handleTogglePlay = () => {
+      if (isReady) toggle()
+    }
+    const handleSeekForward = () => {
+      if (isReady) skip(5)
+    }
+    const handleSeekBackward = () => {
+      if (isReady) skip(-5)
+    }
+    const handleToggleLoop = () => {
+      setIsLooping(l => !l)
+    }
+    const handleToggleMute = () => {
+      setIsMuted(m => !m)
+    }
+    const handleCopyAudio = () => {
+      handleCopyToClipboard()
+    }
+    const handleSaveAudio = () => {
+      handleDownload()
+    }
+
+    window.addEventListener('sona:toggle-play', handleTogglePlay)
+    window.addEventListener('sona:seek-forward', handleSeekForward)
+    window.addEventListener('sona:seek-backward', handleSeekBackward)
+    window.addEventListener('sona:toggle-loop', handleToggleLoop)
+    window.addEventListener('sona:toggle-mute', handleToggleMute)
+    window.addEventListener('sona:copy-audio', handleCopyAudio)
+    window.addEventListener('sona:save-audio', handleSaveAudio)
+
+    return () => {
+      window.removeEventListener('sona:toggle-play', handleTogglePlay)
+      window.removeEventListener('sona:seek-forward', handleSeekForward)
+      window.removeEventListener('sona:seek-backward', handleSeekBackward)
+      window.removeEventListener('sona:toggle-loop', handleToggleLoop)
+      window.removeEventListener('sona:toggle-mute', handleToggleMute)
+      window.removeEventListener('sona:copy-audio', handleCopyAudio)
+      window.removeEventListener('sona:save-audio', handleSaveAudio)
+    }
+  }, [isReady, toggle, skip, handleCopyToClipboard, handleDownload])
+
+  // Keyboard shortcuts (direct key handlers for when focus is on page)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return
+
+      switch (e.code) {
+        case 'Space':
+          // Only handle Space without modifiers (Ctrl+Space is enhance prompt)
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault()
+            toggle()
+          }
+          break
+        case 'ArrowLeft':
+          // Only handle arrows without Ctrl (Ctrl+Arrow is seek from command palette)
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            skip(-5)
+          }
+          break
+        case 'ArrowRight':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            skip(5)
+          }
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [toggle, skip])
 
   const getVolumeLevel = (): 'mute' | 'low' | 'high' => {
     if (isMuted || volume === 0) return 'mute'
