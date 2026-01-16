@@ -17,7 +17,7 @@
 
 import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Lock, Sparkles, Loader2 } from 'lucide-react'
+import { Lock, Loader2 } from 'lucide-react'
 import { useAccessGate } from '../../hooks/use-access-gate'
 
 interface ProtectedContentProps {
