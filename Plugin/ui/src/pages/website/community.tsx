@@ -122,18 +122,18 @@ function ActivityFeed() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.05 }}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-landing-surface-light/50 dark:bg-landing-surface-dark/50 border border-gray-100 dark:border-white/5"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-landing-surface-light/50 dark:bg-landing-surface-dark/50 border border-gray-100 dark:border-white/5"
                     >
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--sona-designer)] to-[var(--sona-creator)] flex items-center justify-center flex-shrink-0">
                             <span className="text-white text-xs font-bold">
                                 {activity.display_name.charAt(0).toUpperCase()}
                             </span>
-                        </div>
+                        </div>  
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm text-landing-text-light dark:text-landing-text-dark truncate">
+                            <p className="text-sm text-landing-text-light/80 dark:text-landing-text-dark">
                                 {activity.message_template}
                             </p>
-                            <p className="text-xs text-landing-subtext-light dark:text-landing-subtext-dark flex items-center gap-1">
+                            <p className="text-xs text-landing-subtext-dark dark:text-landing-subtext-dark flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {formatRelativeTime(activity.created_at)}
                             </p>

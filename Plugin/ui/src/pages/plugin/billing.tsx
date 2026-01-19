@@ -235,7 +235,7 @@ export default function BillingPage() {
       {/* Footer */}
       <footer className="px-5 py-3 text-center">
         <p className="text-[10px] text-[var(--sona-text-subtle)] tracking-wider">
-          sona v0.1.0 · prototip
+          Closed Beta v1.0.0 · aiwasamistake.ai
         </p>
       </footer>
     </div>

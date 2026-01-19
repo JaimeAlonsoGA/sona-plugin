@@ -7,9 +7,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
-import { submitJob, getJob, getUserJobs, subscribeToJob, getTotalCompletedJobsCount } from '../api/jobs'
+import { submitJob, getJob, getUserJobs, subscribeToJob, getTotalCompletedJobsCount, getPublicShowcaseJobs } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 import { useIsAuthenticated } from './use-supabase'
+import { supabase } from '../supabase'
 
 /**
  * Query keys for consistent cache management
@@ -20,6 +21,8 @@ export const jobQueryKeys = {
   completed: () => [...jobQueryKeys.all, 'completed'] as const,
   totalCompletedCount: () => [...jobQueryKeys.all, 'totalCompletedCount'] as const,
   detail: (id: string) => [...jobQueryKeys.all, 'detail', id] as const,
+  latestJob: () => [...jobQueryKeys.all, 'latestJob'] as const,
+  publicShowcase: () => [...jobQueryKeys.all, 'publicShowcase'] as const,
 }
 
 /**
@@ -38,12 +41,12 @@ export function useSubmitJob() {
 
       // Invalidate the list to refresh it
       queryClient.invalidateQueries({ queryKey: jobQueryKeys.list() })
-      
+
       // Invalidate token balance since tokens were charged
       queryClient.invalidateQueries({ queryKey: ['userTokens'] })
       queryClient.invalidateQueries({ queryKey: ['hasTokens'] })
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      
+
       console.log(`[useSubmitJob] Tokens charged: ${data.tokens_charged}`)
     },
     onError: (error) => {
@@ -84,7 +87,7 @@ export function useJob(
  */
 export function useUserJobs(limit = 50) {
   const isAuthenticated = useIsAuthenticated()
-  
+
   return useQuery({
     queryKey: jobQueryKeys.list(),
     queryFn: () => getUserJobs(limit),
@@ -107,11 +110,11 @@ export function useUserJobs(limit = 50) {
  */
 export function useCompletedJobs(limit = 50) {
   const { data: jobs, ...rest } = useUserJobs(limit)
-  
+
   const completedJobs = useMemo(() => {
     if (!jobs) return []
     return jobs.filter(
-      (job): job is Job & { preview_path: string } => 
+      (job): job is Job & { preview_path: string } =>
         job.status === 'completed' && job.preview_path !== null
     )
   }, [jobs])
@@ -132,7 +135,7 @@ export function useCompletedJobs(limit = 50) {
  */
 export function useTotalCompletedJobsCount() {
   const isAuthenticated = useIsAuthenticated()
-  
+
   return useQuery({
     queryKey: jobQueryKeys.totalCompletedCount(),
     queryFn: () => getTotalCompletedJobsCount(),
@@ -199,4 +202,80 @@ export function useJobPolling(jobId: string | null, enabled = true) {
 
   // Return the polling query if active, otherwise the regular query
   return shouldPoll ? pollingQuery : jobQuery
+}
+
+
+/**
+ * Latest job with audio - the most recent completed job that has audio
+ */
+export interface LatestJob {
+  id: string
+  prompt: string
+  previewPath: string
+  storageUrl: string
+  createdAt: string
+}
+
+/**
+ * Hook to get the latest completed job with audio
+ * Used to optionally link a job to a feedback report
+ * 
+ * @returns Query result with the latest job or null
+ */
+export function useLatestJob() {
+  const isAuthenticated = useIsAuthenticated()
+
+  return useQuery({
+    queryKey: jobQueryKeys.latestJob(),
+    queryFn: async (): Promise<LatestJob | null> => {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('id, prompt, preview_path, created_at')
+        .eq('status', 'completed')
+        .not('preview_path', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error || !data || !data.preview_path) {
+        return null
+      }
+
+      // Get signed URL for the audio file
+      const { data: signedUrl } = await supabase
+        .storage
+        .from('audio-files')
+        .createSignedUrl(data.preview_path, 3600) // 1 hour expiry
+
+      return {
+        id: data.id,
+        prompt: data.prompt,
+        previewPath: data.preview_path,
+        storageUrl: signedUrl?.signedUrl || data.preview_path,
+        createdAt: data.created_at,
+      }
+    },
+    staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    enabled: isAuthenticated,
+  })
+}
+
+/**
+ * Hook to fetch public showcase jobs for the landing page
+ * These are community-donated audio generations that are publicly available
+ * Does not require authentication
+ * 
+ * @param limit - Maximum number of jobs to fetch (default: 12)
+ * @returns Query result with public showcase jobs
+ */
+export function usePublicShowcaseJobs(limit = 12) {
+  return useQuery({
+    queryKey: jobQueryKeys.publicShowcase(),
+    queryFn: () => getPublicShowcaseJobs(limit),
+    staleTime: 1000 * 60 * 5, // 5 minutes - public data changes less frequently
+    gcTime: 1000 * 60 * 10, // 10 minutes - keep in cache longer
+    retry: 2,
+  })
 }

@@ -13,11 +13,14 @@ import { LandingNav } from '../../components/landing/landing-nav'
 import { LandingFooter } from '../../components/landing/landing-footer'
 import { useSession } from '../../lib/hooks'
 import { getBetaStatus, BetaStatus } from '../../lib/beta'
+import { useAccessGate } from '@/hooks/use-access-gate'
 
 export default function EmailConfirmationPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { data: session, isLoading: sessionLoading } = useSession()
+
+  const { handleProtectedAction } = useAccessGate()
 
   const [betaStatus, setBetaStatus] = useState<BetaStatus>('none')
   const [isLoading, setIsLoading] = useState(true)
@@ -42,10 +45,6 @@ export default function EmailConfirmationPage() {
 
   const handleGoToLanding = () => {
     navigate('/')
-  }
-
-  const handleGoToDownload = () => {
-    navigate('/download')
   }
 
   if (isLoading || sessionLoading) {
@@ -152,7 +151,7 @@ export default function EmailConfirmationPage() {
                 </div>
 
                 <button
-                  onClick={handleGoToDownload}
+                  onClick={handleProtectedAction}
                   className="bg-primary text-white px-8 py-4 rounded-full font-medium hover:bg-amber-700 transition-colors"
                 >
                   Download SONA
@@ -170,7 +169,7 @@ export default function EmailConfirmationPage() {
                   onClick={handleGoToLanding}
                   className="bg-primary text-white px-8 py-4 rounded-full font-medium hover:bg-amber-700 transition-colors"
                 >
-                  Continue to SONA
+                  Complete Beta Application
                 </button>
               </>
             )}

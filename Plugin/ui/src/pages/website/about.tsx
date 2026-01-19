@@ -89,7 +89,7 @@ export default function AboutPage() {
               If you haven't joined yet, we encourage you to become part of the R&D community ecosystem we are building. When we created SONA, an AI-powered audio plugin, we didn't know what to expect, and we still don't. Its secrets have yet to be discovered, though the developers have put in a lot of effort to make it a great tool that meets industry professional standards.
             </p>
             <p>
-              The SONA developers have worked closely with sound designers and music producers. Special thanks to El Bosque Studios for allowing AI Was A Mistake to test the plugin in their treated environment with professional tools.
+              The SONA developers have worked closely with sound designers and music producers. Special thanks to El Boske Studios for allowing AI Was A Mistake.ai to test the plugin in their treated environment with professional tools.
               Thank you!
             </p>
           </div>

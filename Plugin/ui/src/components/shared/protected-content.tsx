@@ -64,7 +64,7 @@ function AccessRequired({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-[400px] flex items-center justify-center px-4"
+      className="min-h-screen flex items-center justify-center px-4"
     >
       <div className="text-center max-w-md">
         <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">

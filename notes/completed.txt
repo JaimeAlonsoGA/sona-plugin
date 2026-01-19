@@ -160,6 +160,12 @@ un usuario compre tokens
 - Dar 1000 tokens a nuevos usuarios
 
 
+-Exportar JUCE
+- Subir web
+- Desplegar backend en Fly.io 
+- Hacer onboarding completo
+
+
 
 
 

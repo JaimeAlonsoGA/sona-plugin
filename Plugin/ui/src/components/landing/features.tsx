@@ -16,7 +16,7 @@ export function Features() {
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Visual Demo */}
           <div className="w-full md:w-1/2 order-2 md:order-1">
-            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center group">
+            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border-4 border-primary dark:border-white/5 overflow-hidden flex items-center justify-center group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <img src={generateImage} alt="Generate Audio" className="w-full h-auto rounded-lg" />
             </div>
@@ -55,7 +55,7 @@ export function Features() {
           {/* Content */}
           <div className="w-full md:w-1/2">
             <div className="max-w-md mx-auto md:ml-auto md:mr-0">
-              <span className="text-primary font-bold tracking-wider text-sm uppercase mb-2 block">
+              <span className="text-[var(--sona-creator)] font-bold tracking-wider text-sm uppercase mb-2 block">
                 Workflow
               </span>
               <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium mb-4 md:mb-6">Automatic Naming</h3>
@@ -67,7 +67,7 @@ export function Features() {
 
           {/* Visual Demo */}
           <div className="w-full md:w-1/2">
-            <div className="relative aspect-video md:aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex flex-col justify-center gap-3 sm:gap-4 group">
+            <div className="relative aspect-video md:aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border-4 border-[var(--sona-creator)] dark:border-white/5 overflow-hidden flex flex-col justify-center gap-3 sm:gap-4 group">
               <div className="absolute inset-0 bg-gradient-to-bl from-sona-gold/5 to-transparent" />
 
               {/* File Card 1 */}
@@ -118,7 +118,7 @@ export function Features() {
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
           {/* Visual Demo */}
           <div className="w-full md:w-1/2 order-2 md:order-1">
-            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center group">
+            <div className="relative aspect-square bg-landing-surface-light dark:bg-landing-surface-dark rounded-2xl md:rounded-3xl p-4 sm:p-8 border-4 border-primary dark:border-white/5 overflow-hidden flex items-center justify-center group">
               {/* <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" /> */}
               <div className="w-3/4 space-y-4 relative z-10 transition-transform duration-500 group-hover:scale-105">
                 {/* Prompt Input */}

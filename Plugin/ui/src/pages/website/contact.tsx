@@ -25,12 +25,12 @@ const CONTACT_OPTIONS = [
     {
         id: 'developer',
         title: 'Talk to the Developer',
-        description: 'Interested in AIWASAMISTAKE.ai? Want to collaborate on AI tools for creators? Speak directly with Jaime Alonso.',
+        description: 'Interested in aiwasamistake.ai? Want to collaborate on AI tools for creators? Speak directly with Jaime Alonso.',
         email: 'jaime.alonso@sona.audio',
         icon: Code2,
         color: 'black',
         cta: 'Contact Jaime',
-        badge: 'AIWASAMISTAKE.ai',
+        badge: 'aiwasamistake.ai',
     },
     {
         id: 'support',

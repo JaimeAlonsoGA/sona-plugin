@@ -1,0 +1,33 @@
+Ventajas de Migrar a un sistema multimodelo: 
+
+- Sona se quita responsabilidad de malos resultados.
+
+- Usuario se siente más en control.
+
+- Precios más transparentes basados en coste de API real. 
+
+- Posibilidad de sacar mejores resultados con modelos avanzados.
+
+
+
+Desentajas:
+
+- Usuario puede abrumarse con demasiadas opciones. 
+
+- Más código, más mantenimiento. 
+
+- APIs distribuidas entre replicate y otros. 
+
+
+Modelos: 
+
+SFX:
+-------
+TangoFlux
+Stable Audio Open 
+
+Musica:
+--------
+Musicgen 
+Stable Audio 2.5
+Suno

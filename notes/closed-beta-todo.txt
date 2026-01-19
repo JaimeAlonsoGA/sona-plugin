@@ -1,0 +1,41 @@
+ADRI REVIEW ONBOARDING Y DESIGNER MODE:
+
+✅
+
+=======================================
+
+[URG]- Modificar correo de bienvenido a la Beta
+
+✅-[URG]- Arreglar la ui de /community recent joins. 
+
+[PRIOR][UI]- Quitar Discord y twitter de correo de confimración
+
+✅ [UI]- Arreglar margin top de download locked
+
+[UI]- Corregir los download requirements
+
+[URG][UI]- Dar feedback al usuario de contraseña incorrecta
+
+[PRIOR][UI]- Cuando fallas en el correo que no te elimine el correo y de diga que falla
+
+[URG][UI]- En annoucement modal usuario no se da cuenta de que es scrolleable
+
+- Que el ctrl+J se pueda presionar
+
+[UI]- Poner el mismo nombre en el /sounds para la calidad de sonidos (standard, draft)
+
+[PRIOR][UI]- Especificar para que es cada modo en el plugin
+
+[URG]- Mejorar MUCHO el prompt enhancer para sacar (No "Souce:") y crear buenos prompts, más breves, menos concretos, más coherente.
+
+[UI]- Sacar un toast global en el plugin cuando se crea el sonido.
+
+[UI]- En crear naming convention, solo mostrar las categorías de cada modo. 
+
+[URG]- Corregir prompt de naming para sacar nombres breves.
+
+- Adelantar audio en el reproductor. Si el audio pasa más del final no vuelve al principio.
+
+[URG]- Si falla que te devuelvan los tokens.
+
+[PRIOR]- Mejorar MUCHO los tips y los guides para guiar al usuario en prompting

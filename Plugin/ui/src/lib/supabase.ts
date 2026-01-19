@@ -69,7 +69,7 @@ export async function signUp(email: string, password: string): Promise<AuthRespo
       email,
       password,
       options: {
-        emailRedirectTo: `${import.meta.env.VITE_APP_URL}/email-confirmation`,
+        emailRedirectTo: `${import.meta.env.VITE_APP_URL}`,
       },
     })
     

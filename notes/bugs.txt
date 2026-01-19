@@ -19,3 +19,6 @@ reproduce: song with lenght 3minutes on HQ.
 
 
 [PRIOR]- SonaProvider error
+
+
+[PRIOR]- Crash al presionar un enlance de mailto en plugin crash

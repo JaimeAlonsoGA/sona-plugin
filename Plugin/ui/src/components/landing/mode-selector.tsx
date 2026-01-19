@@ -64,9 +64,9 @@ export function ModeSelector() {
 
 function DesignerCard({ mode }: { mode: ModeConfig }) {
   const Icon = mode.icon
-  
+
   return (
-    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-white/5 hover:border-[var(--sona-designer)]/50 transition-all relative overflow-hidden h-72 sm:h-80 md:h-96 flex flex-col justify-between">
+    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 border-[var(--sona-designer)] dark:border-white/5 hover:border-[var(--sona-designer)]/50 transition-all relative overflow-hidden h-72 sm:h-80 flex flex-col justify-between">
       {/* Background Icon */}
       <div className="absolute top-0 right-0 p-6 md:p-8 opacity-20 group-hover:opacity-100 transition-opacity">
         <Icon className="w-12 h-12 md:w-16 md:h-16 text-[var(--sona-designer)]" />
@@ -94,9 +94,9 @@ function DesignerCard({ mode }: { mode: ModeConfig }) {
 
 function ProducerCard({ mode }: { mode: ModeConfig }) {
   const Icon = mode.icon
-  
+
   return (
-    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-white/5 hover:border-sona-producer/50 transition-all relative overflow-hidden h-72 sm:h-80 md:h-96 flex flex-col justify-between">
+    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 border-[var(--sona-producer)] dark:border-white/5 hover:border-sona-producer/50 transition-all relative overflow-hidden h-72 sm:h-80 flex flex-col justify-between">
       {/* Background Icon */}
       <div className="absolute top-0 right-0 p-6 md:p-8 opacity-20 group-hover:opacity-100 transition-opacity">
         <Icon className="w-12 h-12 md:w-16 md:h-16 text-[var(--sona-producer)]" />
@@ -128,9 +128,9 @@ function ProducerCard({ mode }: { mode: ModeConfig }) {
 
 function CreatorCard({ mode }: { mode: ModeConfig }) {
   const Icon = mode.icon
-  
+
   return (
-    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-white/5 hover:border-sona-creator/50 transition-all relative overflow-hidden h-72 sm:h-80 md:h-96 flex flex-col justify-between sm:col-span-2 md:col-span-1">
+    <div className="group bg-landing-bg-light dark:bg-landing-bg-dark rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 border-[var(--sona-creator)] dark:border-white/5 hover:border-sona-creator/50 transition-all relative overflow-hidden h-72 sm:h-80 flex flex-col justify-between sm:col-span-2 md:col-span-1">
       {/* Background Icon */}
       <div className="absolute top-0 right-0 p-6 md:p-8 opacity-20 group-hover:opacity-100 transition-opacity">
         <Icon className="w-12 h-12 md:w-16 md:h-16 text-[var(--sona-creator)]" />

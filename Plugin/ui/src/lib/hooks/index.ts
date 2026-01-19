@@ -22,6 +22,8 @@ export {
   useJobSubscription,
   useJobPolling,
   jobQueryKeys,
+  useLatestJob,
+  usePublicShowcaseJobs,
 } from './use-jobs'
 
 export {
@@ -55,10 +57,8 @@ export {
 
 export {
   useSubmitReport,
-  useLatestJob,
   reportQueryKeys,
 } from './use-reports'
-export type { LatestJob } from './use-reports'
 
 export {
   useBetaStatus,

@@ -225,3 +225,72 @@ export async function getTotalCompletedJobsCount(): Promise<number> {
     return 0
   }
 }
+
+/**
+ * Public showcase job data
+ */
+export interface PublicShowcaseJob {
+  id: string
+  prompt: string
+  enhanced_prompt: string | null
+  filename: string | null
+  mode: string
+  duration: number
+  created_at: string
+  audioUrl: string
+}
+
+/**
+ * Bucket name for public audio files
+ */
+const PUBLIC_AUDIO_BUCKET = 'public-audio'
+
+/**
+ * Get public jobs for the audio showcase
+ * These are jobs where public=true and have been donated to the community
+ * 
+ * @param limit - Maximum number of jobs to return (default: 12)
+ * @returns Promise with array of public showcase jobs
+ */
+export async function getPublicShowcaseJobs(limit = 12): Promise<PublicShowcaseJob[]> {
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('id, prompt, enhanced_prompt, filename, mode, duration, created_at, public_path')
+      .eq('public', true)
+      .eq('status', 'completed')
+      .not('public_path', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Get public showcase jobs error:', error)
+      throw new Error(`Failed to fetch public jobs: ${error.message}`)
+    }
+
+    if (!data || data.length === 0) {
+      return []
+    }
+
+    // Build public URLs for each audio file from the public bucket
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    
+    return data.map((job) => ({
+      id: job.id,
+      prompt: job.prompt,
+      enhanced_prompt: job.enhanced_prompt,
+      filename: job.filename,
+      mode: job.mode,
+      duration: job.duration,
+      created_at: job.created_at,
+      // Public bucket URL - files are publicly accessible
+      audioUrl: `${supabaseUrl}/storage/v1/object/public/${PUBLIC_AUDIO_BUCKET}/${job.public_path}`,
+    }))
+  } catch (error) {
+    console.error('Get public showcase jobs error:', error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Failed to fetch public showcase jobs')
+  }
+}
