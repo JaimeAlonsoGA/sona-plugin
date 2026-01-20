@@ -11,6 +11,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react'
 import { LandingNav } from '../../components/landing/landing-nav'
 import { LandingFooter } from '../../components/landing/landing-footer'
+import { BetaModal } from '../../components/landing/beta-modal'
 import { useSession } from '../../lib/hooks'
 import { getBetaStatus, BetaStatus } from '../../lib/beta'
 import { useAccessGate } from '@/hooks/use-access-gate'
@@ -20,7 +21,7 @@ export default function EmailConfirmationPage() {
   const [searchParams] = useSearchParams()
   const { data: session, isLoading: sessionLoading } = useSession()
 
-  const { handleProtectedAction } = useAccessGate()
+  const { handleProtectedAction, openModal, isModalOpen, closeModal } = useAccessGate()
 
   const [betaStatus, setBetaStatus] = useState<BetaStatus>('none')
   const [isLoading, setIsLoading] = useState(true)
@@ -166,7 +167,7 @@ export default function EmailConfirmationPage() {
                 </p>
 
                 <button
-                  onClick={handleGoToLanding}
+                  onClick={openModal}
                   className="bg-primary text-white px-8 py-4 rounded-full font-medium hover:bg-amber-700 transition-colors"
                 >
                   Complete Beta Application
@@ -199,6 +200,9 @@ export default function EmailConfirmationPage() {
       </main >
 
       <LandingFooter />
+
+      {/* Beta Registration Modal */}
+      <BetaModal isOpen={isModalOpen} onClose={closeModal} />
     </div >
   )
 }

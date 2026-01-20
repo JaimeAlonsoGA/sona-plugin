@@ -19,6 +19,7 @@ import { SonaProvider } from '../hooks/use-sona-state'
 import { WEBSITE_ROUTES, PLUGIN_ROUTES } from '../lib/navigation'
 import { ToastProvider, ErrorBoundary } from '../components/shared'
 import { WebsiteLayout } from '../layouts'
+import { AccessGateProvider } from '../hooks/use-access-gate'
 
 // Lazy load pages for better performance
 const LandingPage = lazy(() => import('../pages/website/landing'))
@@ -295,13 +296,15 @@ const router = createBrowserRouter([
         ],
       },
 
-      // Email confirmation callback (special - no layout)
+      // Email confirmation callback (special - no layout, but needs AccessGateProvider)
       {
         path: '/auth/callback',
         element: (
-          <LandingSuspenseWrapper>
-            <EmailConfirmationPage />
-          </LandingSuspenseWrapper>
+          <AccessGateProvider>
+            <LandingSuspenseWrapper>
+              <EmailConfirmationPage />
+            </LandingSuspenseWrapper>
+          </AccessGateProvider>
         ),
       },
 

@@ -24,7 +24,7 @@ export function LandingNav({ onDownload }: LandingNavProps) {
   const { data: session } = useSession()
   const signOutMutation = useSignOut()
   const { data: betaStatus } = useBetaStatus(session?.user?.id)
-  
+
   const isLoggedIn = !!session?.user
 
   // Hide/show nav on scroll
@@ -32,7 +32,7 @@ export function LandingNav({ onDownload }: LandingNavProps) {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       const scrollThreshold = 100 // Start hiding after 100px
-      
+
       if (currentScrollY < scrollThreshold) {
         // Always show when near top
         setIsVisible(true)
@@ -44,7 +44,7 @@ export function LandingNav({ onDownload }: LandingNavProps) {
         // Scrolling up - show
         setIsVisible(true)
       }
-      
+
       setLastScrollY(currentScrollY)
     }
 
@@ -110,10 +110,9 @@ export function LandingNav({ onDownload }: LandingNavProps) {
   const statusConfig = getStatusConfig()
 
   return (
-    <nav 
-      className={`fixed top-0 w-full z-50 backdrop-blur-lg bg-white/70 dark:bg-sona-void/80 border-b border-gray-200 dark:border-white/5 transition-transform duration-300 ease-in-out ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      }`}
+    <nav
+      className={`fixed top-0 w-full z-50 backdrop-blur-lg bg-white/70 dark:bg-sona-void/80 border-b border-gray-200 dark:border-white/5 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
