@@ -20,6 +20,7 @@ import { WEBSITE_ROUTES, PLUGIN_ROUTES } from '../lib/navigation'
 import { ToastProvider, ErrorBoundary } from '../components/shared'
 import { WebsiteLayout } from '../layouts'
 import { AccessGateProvider } from '../hooks/use-access-gate'
+import sonaIcon from '../assets/sona-icon.png'
 
 // Lazy load pages for better performance
 const LandingPage = lazy(() => import('../pages/website/landing'))
@@ -57,7 +58,8 @@ const LandingLoader = () => (
   <div className="min-h-screen bg-landing-bg-light dark:bg-landing-bg-dark flex items-center justify-center">
     <div className="flex flex-col items-center gap-3">
       <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-      <span className="text-landing-subtext-light dark:text-landing-subtext-dark text-sm font-mono font-bold">Pss, Pss, SONA... a user!</span>
+      <img src={sonaIcon} alt="Sona Logo" className="w-24 animate-pulse" />
+      {/* <span className="text-landing-subtext-light dark:text-landing-subtext-dark text-sm font-mono font-bold">Pss, Pss, SONA... a user!</span> */}
     </div>
   </div>
 )
