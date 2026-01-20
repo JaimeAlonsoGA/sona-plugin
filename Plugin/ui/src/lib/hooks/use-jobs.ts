@@ -6,11 +6,13 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { submitJob, getJob, getUserJobs, subscribeToJob, getTotalCompletedJobsCount, getPublicShowcaseJobs } from '../api/jobs'
 import type { CreateJobInput, Job } from '../../types/jobs'
 import { useIsAuthenticated } from './use-supabase'
 import { supabase } from '../supabase'
+
+const STORAGE_BUCKET = 'audio-files'
 
 /**
  * Query keys for consistent cache management
@@ -99,31 +101,61 @@ export function useUserJobs(limit = 50) {
 }
 
 /**
- * Hook to get only completed jobs with audio
- * Uses the same cached data as useUserJobs for efficiency
+ * Completed job with signed URL for audio playback
+ */
+export type CompletedJobWithUrl = Job & { 
+  preview_path: string
+  audioUrl: string | null 
+}
+
+/**
+ * Hook to get only completed jobs with audio and signed URLs
  * 
  * NOTE: Due to storage limits, only the 7 most recent audio files are kept.
  * Jobs older than the 7th most recent will have their audio paths cleared.
  * 
  * @param limit - Maximum number of jobs to fetch
- * @returns Query result with completed jobs that have audio
+ * @returns Query result with completed jobs that have audio and signed URLs
  */
 export function useCompletedJobs(limit = 50) {
-  const { data: jobs, ...rest } = useUserJobs(limit)
+  const isAuthenticated = useIsAuthenticated()
 
-  const completedJobs = useMemo(() => {
-    if (!jobs) return []
-    return jobs.filter(
-      (job): job is Job & { preview_path: string } =>
-        job.status === 'completed' && job.preview_path !== null
-    )
-  }, [jobs])
+  const query = useQuery({
+    queryKey: [...jobQueryKeys.completed(), 'withUrls'],
+    queryFn: async (): Promise<CompletedJobWithUrl[]> => {
+      const jobs = await getUserJobs(limit)
+      
+      // Filter to only completed jobs with preview paths
+      const completedJobs = jobs.filter(
+        (job): job is Job & { preview_path: string } =>
+          job.status === 'completed' && job.preview_path !== null
+      )
+
+      // Generate signed URLs for each job
+      const jobsWithUrls = await Promise.all(
+        completedJobs.map(async (job) => {
+          const { data } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .createSignedUrl(job.preview_path, 3600) // 1 hour expiry
+          
+          return {
+            ...job,
+            audioUrl: data?.signedUrl || null,
+          }
+        })
+      )
+
+      return jobsWithUrls
+    },
+    staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    enabled: isAuthenticated,
+  })
 
   return {
-    ...rest,
-    data: completedJobs,
-    totalCount: jobs?.length ?? 0,
-    completedCount: completedJobs.length,
+    ...query,
+    completedCount: query.data?.length ?? 0,
   }
 }
 
@@ -202,6 +234,47 @@ export function useJobPolling(jobId: string | null, enabled = true) {
 
   // Return the polling query if active, otherwise the regular query
   return shouldPoll ? pollingQuery : jobQuery
+}
+
+/**
+ * Hook to get a signed URL for a job's audio file (private bucket)
+ * Only fetches when job is completed and has a preview path
+ * 
+ * @param job - The job to get the audio URL for
+ * @returns Signed URL for the audio file or null
+ */
+export function useJobAudioUrl(job: Job | null | undefined) {
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Reset URL when job changes or is not ready
+    if (!job?.preview_path || job.status !== 'completed') {
+      setAudioUrl(null)
+      return
+    }
+
+    // Fetch signed URL
+    let cancelled = false
+    
+    supabase.storage
+      .from(STORAGE_BUCKET)
+      .createSignedUrl(job.preview_path, 3600)
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          console.error('[useJobAudioUrl] Error:', error.message)
+          setAudioUrl(null)
+        } else {
+          setAudioUrl(data?.signedUrl || null)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [job?.id, job?.preview_path, job?.status])
+
+  return audioUrl
 }
 
 

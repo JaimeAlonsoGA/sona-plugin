@@ -21,10 +21,12 @@ export {
   useTotalCompletedJobsCount,
   useJobSubscription,
   useJobPolling,
+  useJobAudioUrl,
   jobQueryKeys,
   useLatestJob,
   usePublicShowcaseJobs,
 } from './use-jobs'
+export type { CompletedJobWithUrl } from './use-jobs'
 
 export {
   useNamingSettings,

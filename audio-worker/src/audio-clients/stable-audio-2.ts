@@ -45,6 +45,7 @@ export class StableAudio2Client extends BaseAudioClient {
                 );
 
                 logger.info(`[${this.name}] Calling API:`, {
+                    url: this.config.stableAudioApiUrl,
                     duration,
                     steps,
                     quality: request.quality,
@@ -90,7 +91,8 @@ export class StableAudio2Client extends BaseAudioClient {
             formData.append('steps', String(steps));
             formData.append('output_format', 'wav');
             formData.append('model', 'stable-audio-2.5');
-            formData.append('cfg_scale', 2);
+            // cfg_scale: defaults to 1 for stable-audio-2.5 (range: 1-25)
+            // Lower values give more creative freedom, higher values adhere more to prompt
 
             // Future: Add audio input support when API supports it
             if (audioInput) {
@@ -100,14 +102,11 @@ export class StableAudio2Client extends BaseAudioClient {
                 // formData.append('audio', audioBlob, 'input.wav');
             }
 
-            // Add empty file field as required by the API
-            formData.append('none', '');
-
             const response = await fetch(this.config.stableAudioApiUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${this.config.stableAudioApiKey}`,
-                    'Accept': 'audio/*',
+                    'authorization': `Bearer ${this.config.stableAudioApiKey}`,
+                    'accept': 'audio/*',
                 },
                 body: formData,
             });

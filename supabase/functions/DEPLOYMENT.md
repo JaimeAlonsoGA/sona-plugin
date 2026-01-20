@@ -128,6 +128,20 @@ Edge Functions automatically receive these environment variables from Supabase:
 
 **No additional environment variables are needed** for the `generate` function.
 
+### Cleanup Function Environment Variables
+
+The `cleanup-expired-audio` function requires an additional secret for security:
+
+```bash
+# Set the cleanup secret (generate a random string)
+supabase secrets set CLEANUP_SECRET=your-random-secret-here
+```
+
+For GitHub Actions, add these secrets to your repository:
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY` - Service role key for admin access
+- `CLEANUP_SECRET` - The same secret you set above
+
 ## Testing Deployment
 
 ### Get an Authentication Token
@@ -318,6 +332,76 @@ After successful deployment:
 4. ✅ Implement audio generation with Stable Audio API
 5. ✅ Set up Supabase Storage for generated audio files
 6. ✅ Implement job status polling or webhooks
+7. ✅ Set up audio cleanup cron job (see below)
+
+## Audio Cleanup Setup
+
+The `cleanup-expired-audio` function automatically removes audio files older than 24 hours from storage and clears the corresponding paths in the jobs table.
+
+### Deploy the Cleanup Function
+
+```bash
+supabase functions deploy cleanup-expired-audio
+```
+
+### Apply the Migration
+
+The migration sets up pg_cron to automatically call the cleanup Edge Function daily:
+
+```bash
+supabase db push
+```
+
+### Configure Secrets in Supabase Vault
+
+Go to **Supabase Dashboard > Project Settings > Vault** and add:
+
+| Secret Name | Value |
+|------------|-------|
+| `supabase_url` | Your project URL (e.g., `https://xxx.supabase.co`) |
+| `service_role_key` | Your service role key |
+| `cleanup_secret` | A random secret (generate with `openssl rand -hex 32`) |
+
+Or via SQL in the SQL Editor:
+
+```sql
+SELECT vault.create_secret('https://xxx.supabase.co', 'supabase_url');
+SELECT vault.create_secret('your-service-role-key', 'service_role_key');
+SELECT vault.create_secret('your-cleanup-secret', 'cleanup_secret');
+```
+
+### Set Edge Function Secret
+
+```bash
+supabase secrets set CLEANUP_SECRET=your-cleanup-secret
+```
+
+### Verify the Cron Job
+
+```sql
+-- Check scheduled job
+SELECT * FROM cron.job WHERE jobname = 'cleanup-expired-audio';
+
+-- View execution history
+SELECT * FROM cron.job_run_details 
+WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'cleanup-expired-audio')
+ORDER BY start_time DESC LIMIT 10;
+```
+
+### Manual Cleanup
+
+```sql
+-- Trigger cleanup manually
+SELECT trigger_audio_cleanup();
+
+-- Or call the Edge Function directly
+curl -X POST \
+  'https://your-project.supabase.co/functions/v1/cleanup-expired-audio' \
+  -H 'Authorization: Bearer YOUR_SERVICE_ROLE_KEY' \
+  -H 'x-cleanup-secret: YOUR_CLEANUP_SECRET' \
+  -H 'Content-Type: application/json' \
+  -d '{"dryRun": true}'
+```
 
 ## Production Checklist
 

@@ -8,25 +8,14 @@
  * React UI → Edge Function → jobs table → Audio Worker → Storage → UI
  */
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import {
   useSubmitJob,
   useJobPolling,
   useIsAuthenticated,
+  useJobAudioUrl,
 } from '../lib/hooks'
 import type { CreateJobInput } from '../types/jobs'
-
-// Supabase Storage configuration
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const STORAGE_BUCKET = 'audio-files'
-
-/**
- * Build a public URL from a storage path
- */
-function getStorageUrl(path: string | null): string | null {
-  if (!path) return null
-  return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`
-}
 
 export function AudioGenerationExample() {
   const [prompt, setPrompt] = useState('')
@@ -41,9 +30,10 @@ export function AudioGenerationExample() {
     Boolean(currentJobId)
   )
 
-  // Build URLs from storage paths
-  const previewUrl = useMemo(() => getStorageUrl(job?.preview_path ?? null), [job?.preview_path])
-  const masterUrl = useMemo(() => getStorageUrl(job?.master_path ?? null), [job?.master_path])
+  // Get signed URL for private bucket audio file
+  const previewUrl = useJobAudioUrl(job)
+  // For master URL, we'd need a separate hook or extend useJobAudioUrl
+  const masterUrl = previewUrl // Same file for now
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

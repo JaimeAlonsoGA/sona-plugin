@@ -4,22 +4,21 @@
  * Individual sound item with playback and metadata display
  */
 
-import { useMemo } from 'react'
 import { Card } from '../shared'
 import { ClockIcon, CalendarIcon } from '../shared/icons'
 import { formatDuration, formatDate } from '../../lib/formatters'
-import { getStorageUrl } from '../../lib/utils'
 import { CompactPlayer } from './compact-player'
-import type { Job } from '../../types/jobs'
+import type { CompletedJobWithUrl } from '../../lib/hooks/use-jobs'
 
 interface SoundCardProps {
-  job: Job & { preview_path: string }
+  job: CompletedJobWithUrl
   index?: number
 }
 
 export function SoundCard({ job, index = 0 }: SoundCardProps) {
-  const audioUrl = useMemo(() => getStorageUrl(job.preview_path), [job.preview_path])
-  
+  // audioUrl comes pre-signed from useCompletedJobs
+  const audioUrl = job.audioUrl
+
   // Use UCS filename if available, fallback to prompt-based name
   const displayFilename = job.filename || `sona-${job.prompt.slice(0, 20).replace(/\s+/g, '-')}`
 
@@ -51,8 +50,8 @@ export function SoundCard({ job, index = 0 }: SoundCardProps) {
             <CalendarIcon size={12} />
             {formatDate(job.created_at)}
           </span>
-          <span className="sona-chip active text-[10px] py-0.5">
-            {job.quality}
+          <span className="sona-chip active text-[10px]">
+            {job.quality === 'high' ? 'HQ' : job.quality === 'standard' ? 'Std' : 'Draft'}
           </span>
         </div>
       </div>

@@ -91,7 +91,7 @@ function getParameterValue(
         case 'creator':
             return 'Sona';
         case 'source':
-            return 'TangoFlux';
+            return 'AI';
         case 'date':
             return formatDate(format);
         case 'timestamp':

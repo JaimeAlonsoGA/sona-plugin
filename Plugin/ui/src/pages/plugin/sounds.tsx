@@ -106,7 +106,7 @@ export default function SoundsPage() {
               className="mb-2 p-3 bg-[var(--sona-surface)] border border-[var(--sona-border)] rounded-xl text-center"
             >
               <p className="text-[var(--sona-text-muted)] text-xs">
-                Only your last 7 sounds are kept in storage
+                Sona stores your last 7 generations for 24 hours
               </p>
             </motion.div>
           )}

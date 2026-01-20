@@ -104,7 +104,7 @@ export default function DownloadPage() {
                         </h1>
 
                         <p className="text-landing-subtext-dark dark:text-landing-subtext-dark text-lg mb-4">
-                            Get started with SONA in minutes. Available for Windows and macOS as VST3 and Standalone.
+                            Get started with SONA in minutes. Available for Windows and macOS as VST3 and Desktop.
                         </p>
 
                         {/* Version Badge */}
@@ -184,7 +184,7 @@ export default function DownloadPage() {
                                             : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
                                             }`}
                                     >
-                                        <span className="font-medium text-sm">Desktop Application</span>
+                                        <span className="font-medium text-sm">Desktop</span>
                                     </button>
                                 </div>
                             </div>
@@ -234,15 +234,15 @@ export default function DownloadPage() {
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                        <span>Intel Core i5 or AMD equivalent (Apple Silicon supported)</span>
+                                        <span>Intel Core i3 or AMD equivalent (Apple Silicon supported)</span>
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                        <span>8 GB RAM minimum (16 GB recommended)</span>
+                                        <span>4 GB RAM minimum (16 GB recommended)</span>
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                        <span>200 MB free disk space</span>
+                                        <span>3 MB free disk space</span>
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -260,10 +260,6 @@ export default function DownloadPage() {
                                     <li className="flex items-start gap-3">
                                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">1</span>
                                         <span>Download the installer for your platform</span>
-                                    </li>
-                                    <li className="flex items-start gap-3">
-                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">2</span>
-                                        <span>Run the installer and follow the setup wizard</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">3</span>

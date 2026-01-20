@@ -16,7 +16,7 @@ export function loadConfig(): WorkerConfig {
     supabaseUrl: getEnv('SUPABASE_URL'),
     supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
     stableAudioApiKey: getEnv('STABLE_AUDIO_API_KEY', 'dummy-key-for-test-mode'),
-    stableAudioApiUrl: getEnv('STABLE_AUDIO_API_URL', 'https://api.stability.ai/v2beta/stable-audio'),
+    stableAudioApiUrl: getEnv('STABLE_AUDIO_API_URL', 'https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio'),
     replicateApiToken: getEnv('REPLICATE_API_TOKEN', ''),
     maxConcurrentJobs: parseInt(getEnv('MAX_CONCURRENT_JOBS', '2'), 10),
     pollIntervalMs: parseInt(getEnv('POLL_INTERVAL_MS', '5000'), 10),

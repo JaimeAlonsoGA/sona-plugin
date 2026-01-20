@@ -10,9 +10,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
 // Hooks
-import { useIsAuthenticated, useJobPolling, useSubmitJob, useSession, useNamingSettings, exportNamingConventionForJob, useEnhancePrompt, useUserTokens } from '../../lib/hooks'
+import { useIsAuthenticated, useJobPolling, useSubmitJob, useSession, useNamingSettings, exportNamingConventionForJob, useEnhancePrompt, useUserTokens, useJobAudioUrl } from '../../lib/hooks'
 import { useSonaState } from '../../hooks/use-sona-state'
-import { getStorageUrl } from '../../lib/utils'
 import { getApiQuality } from '../../lib/audio'
 import { promptToFilename } from '../../lib/formatters'
 import { openWebPage, WEBSITE_ROUTES } from '../../lib/navigation'
@@ -169,10 +168,8 @@ export default function SonaPage() {
     ? (job?.status ?? 'queued') as 'idle' | 'queued' | 'processing' | 'completed' | 'failed'
     : 'idle'
 
-  const previewUrl = useMemo(
-    () => getStorageUrl(job?.preview_path ?? null),
-    [job?.preview_path]
-  )
+  // Get signed URL for audio playback (private bucket)
+  const previewUrl = useJobAudioUrl(job)
 
   // Use the UCS filename from the job, or fallback to promptToFilename
   const audioFilename = useMemo(
