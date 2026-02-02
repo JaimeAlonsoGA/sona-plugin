@@ -45,7 +45,7 @@ export const TOKEN_PACKAGES: TokenPackage[] = [
   },
   {
     id: 'tokens_900',
-    name: 'Producer',
+    name: 'Pro',
     tokens: 900,
     price: 1000, // $10.00
     priceDisplay: '$10',

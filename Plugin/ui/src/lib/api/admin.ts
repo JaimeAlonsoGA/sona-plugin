@@ -107,7 +107,7 @@ export const REPORT_EMAIL_SENDERS: Record<ReportEmailSender, { label: string; em
   support: { label: 'Support', email: 'support@sona.audio' },
   hello: { label: 'Hello', email: 'hello@sona.audio' },
   jaime: { label: 'Jaime Alonso', email: 'jaime.alonso@sona.audio' },
-  development: { label: 'Development', email: 'development@sona.audio' },
+  development: { label: 'Development', email: 'developer@sona.audio' },
 }
 
 // Default sender based on feedback type

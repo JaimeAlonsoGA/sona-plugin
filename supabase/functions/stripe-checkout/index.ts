@@ -18,7 +18,7 @@ const corsHeaders = {
 const TOKEN_PACKAGES: Record<string, { tokens: number; name: string; price: number }> = {
   'tokens_200': { tokens: 150, name: 'Starter (200 tokens)', price: 200 },
   'tokens_500': { tokens: 400, name: 'Creator (500 tokens)', price: 500 },
-  'tokens_1000': { tokens: 900, name: 'Producer (1000 tokens)', price: 1000 },
+  'tokens_900': { tokens: 900, name: 'Pro (900 tokens)', price: 1000 },
   'tokens_2000': { tokens: 2000, name: 'Studio (2000 tokens)', price: 2000 },
 }
 

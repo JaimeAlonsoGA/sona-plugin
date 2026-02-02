@@ -22,7 +22,7 @@ import { ChevronLeftIcon } from '../../components/shared/icons'
 import { TOKEN_PACKAGES } from '../../types/stripe.types'
 
 // Initialize Stripe - use your publishable key
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY_TEST || 'pk_test_placeholder')
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder')
 
 /**
  * Checkout Form Component
